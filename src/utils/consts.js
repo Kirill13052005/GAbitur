@@ -1,0 +1,10 @@
+export const JOB_ROUTE = '/job';
+export const ORGANIZATION_ROUTE = '/organization';
+export const SKILL_ROUTE = '/skill';
+export const WORKS_ROUTE = '/';
+export const STUDENT_ROUTE = '/student';
+export const TEACHER_ROUTE = '/teacher';
+export const ADMIN_ROUTE = '/admin'
+export const USER_ROUTE = '/user'
+export const LOGIN_ROUTE = '/login'
+export const REGISTRATION_ROUTE = '/registration'
