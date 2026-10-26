@@ -56,7 +56,7 @@ const FAQS = [
 
 const PARTNERS = ['Харківський обласний центр зайнятості', 'Харківський міський центр зайнятості', 'Youth Career Hub', 'Kharkiv IT Cluster', 'Профорієнтаційні центри Харкова'];
 
-const NAV_LINKS = [['professions', 'Професії'], ['courses', 'Курси'], ['timeline', 'План дій'], ['analytics', 'Аналітика'], ['faq', 'FAQ']];
+const NAV_LINKS = [['professions', 'Професії'], ['courses', 'Курси'], ['timeline', 'План дій'], ['faq', 'FAQ']];
 const SKY_HEIGHTS = [30, 50, 40, 70, 50, 80, 45, 60, 90, 55, 75, 40, 65, 35];
 
 /* ============================================================
@@ -590,37 +590,6 @@ ul, ol { list-style: none; }
 .m-mod-head span { background: rgba(25, 100, 94, 0.1); color: var(--primary-dark); font-weight: 800; font-size: 0.85rem; padding: 0.4rem 1rem; border-radius: 50px; text-transform: uppercase; }
 .m-mod p { color: var(--text-mut); font-size: 1rem; font-weight: 500; margin: 0; }
 
-/* ---------- ПСЕВДО-АНАЛІТИКА (DARK DASHBOARD) ---------- */
-.analytics-wrap { background: linear-gradient(145deg, #0f2027, #203a43, #2c5364); border-radius: 40px; padding: 5rem 3rem; color: #fff; box-shadow: 0 30px 60px rgba(0,0,0,0.3); position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
-.analytics-wrap::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(80, 227, 194, 0.05) 0%, transparent 50%); animation: rotateBg 20s linear infinite; pointer-events: none; }
-@keyframes rotateBg { to { transform: rotate(360deg); } }
-.a-header { text-align: center; margin-bottom: 4rem; position: relative; z-index: 2; }
-.a-header h2 { font-size: clamp(2rem, 3vw, 2.8rem); font-weight: 900; margin-bottom: 1rem; background: linear-gradient(90deg, #fff, #50E3C2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.a-header p { color: rgba(255,255,255,0.7); font-size: 1.1rem; font-weight: 500; }
-.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 4rem; position: relative; z-index: 2; }
-.stat-box { background: rgba(255,255,255,0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 2rem 1.5rem; text-align: center; transition: transform 0.3s, background 0.3s, border-color 0.3s; }
-.stat-box:hover { transform: translateY(-8px); background: rgba(255,255,255,0.06); border-color: #50E3C2; box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
-.stat-icon { font-size: 2.2rem; margin-bottom: 1rem; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); }
-.stat-val { font-size: 2.5rem; font-weight: 900; color: #fff; margin-bottom: 0.3rem; letter-spacing: 1px; transition: color 0.3s; }
-.stat-lbl { font-size: 0.85rem; font-weight: 700; color: #50E3C2; text-transform: uppercase; letter-spacing: 1.5px; }
-.a-divider { text-align: center; margin-bottom: 3rem; position: relative; z-index: 2; }
-.a-divider span { display: inline-block; background: rgba(0,0,0,0.3); padding: 0.8rem 1.5rem; border-radius: 50px; font-size: 0.9rem; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 2px; border: 1px solid rgba(255,255,255,0.05); }
-.steps-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 2rem; position: relative; z-index: 2; }
-.m-step-card { background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(80, 227, 194, 0.15); border-radius: 20px; padding: 2.5rem 2rem; transition: all 0.4s cubic-bezier(0.25, 1, 0.2, 1); }
-.m-step-card:hover { border-color: #50E3C2; box-shadow: 0 0 25px rgba(80, 227, 194, 0.15); background: rgba(0, 0, 0, 0.4); }
-.m-step-num { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: #50E3C2; color: #000; font-weight: 900; border-radius: 10px; margin-bottom: 1.5rem; font-size: 1.2rem; box-shadow: 0 0 15px rgba(80, 227, 194, 0.4); }
-.m-step-text { color: #d1d5db; font-size: 0.95rem; line-height: 1.6; font-weight: 500; }
-
-/* Перемикач A/B тесту */
-.ab-toggle { display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 3.5rem; position: relative; z-index: 2; flex-wrap: wrap; }
-.ab-toggle button { background: rgba(255,255,255,0.03); border: 2px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); padding: 1rem 2.5rem; border-radius: 50px; font-weight: 900; font-size: 1.1rem; transition: all 0.4s var(--ease-spring); display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }
-.ab-toggle button small { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; }
-.ab-toggle button:hover { background: rgba(255,255,255,0.08); border-color: rgba(80, 227, 194, 0.5); color: #fff; transform: translateY(-3px); }
-.ab-toggle button.active { background: #50E3C2; color: #0f2027; border-color: #50E3C2; box-shadow: 0 10px 30px rgba(80, 227, 194, 0.4); transform: scale(1.05); }
-.ab-toggle button.active small { color: #0f2027; opacity: 0.8; }
-.ab-anim { animation: popInAb 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-@keyframes popInAb { 0% { transform: scale(0.8) translateY(20px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
-
 /* ============================================================
    АДАПТИВ ТА ОПТИМІЗАЦІЯ
    ============================================================ */
@@ -630,7 +599,7 @@ ul, ol { list-style: none; }
   .tilt-card, .tilt-card:hover { transform: none !important; }
   .prof-body, .c-head, .course-card h3, .course-card p, .course-card ul { transform: none; }
   .play-btn, .tilt-card:hover .play-btn { transform: translate(-50%, -50%) !important; }
-  .tl-item:hover .tl-content, .acc-item:hover, .review-card:hover, .eco-card:hover, .stat-box:hover { transform: none; }
+  .tl-item:hover .tl-content, .acc-item:hover, .review-card:hover, .eco-card:hover { transform: none; }
   .tl-item:hover::after { height: 0; }
   .btn:hover, .filter-btn:hover, .marquee-item:hover { transform: none; }
 }
@@ -665,8 +634,8 @@ ul, ol { list-style: none; }
   .mobile-menu a:last-child { border-bottom: 0; }
 
   /* важкі ефекти вимкнено */
-  .blobs-wrap, .analytics-wrap::before { display: none; }
-  .glass, .stat-box, .play-btn, .modal-overlay, .modal-close, .ai-panel { backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .blobs-wrap { display: none; }
+  .glass, .play-btn, .modal-overlay, .modal-close, .ai-panel { backdrop-filter: none; -webkit-backdrop-filter: none; }
   .ai-panel { background: #fff; }
   .modal-overlay { background: rgba(29, 45, 42, 0.92); }
   .marquee-wrap { animation-duration: 30s; }
@@ -730,19 +699,6 @@ ul, ol { list-style: none; }
   .footer { padding: 3rem 1rem 6rem; }
   .footer-logo { font-size: 1.5rem; }
 
-  .analytics-wrap { padding: 2rem 1rem; border-radius: 24px; }
-  .a-header { margin-bottom: 2rem; }
-  .a-header p { font-size: 0.95rem; }
-  .ab-toggle { gap: 0.8rem; margin-bottom: 2rem; }
-  .ab-toggle button { padding: 0.8rem 1.5rem; width: 100%; }
-  .ab-toggle button.active { transform: none; }
-  .stat-grid { grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 2.5rem; }
-  .stat-box { padding: 1.2rem 0.6rem; border-radius: 18px; }
-  .stat-icon { font-size: 1.8rem; margin-bottom: 0.5rem; }
-  .stat-val { font-size: 1.4rem; }
-  .stat-lbl { font-size: 0.65rem; letter-spacing: 0.5px; }
-  .m-step-card { padding: 1.5rem 1.2rem; }
-
   /* модалка як bottom-sheet */
   .modal-overlay { padding: 0; align-items: flex-end; }
   .modal-content { max-height: 92vh; max-height: 92dvh; border-radius: 24px 24px 0 0; }
@@ -791,6 +747,8 @@ const KharkivCorporatePortal = () => {
   const [menu, setMenu] = useState(false);
   const [activeTab, setActiveTab] = useState('video');
   const [fb, setFb] = useState({ type: 'feedback', text: '', contact: '', sent: false });
+  // Новий стейт для форми відгуків
+  const [reviewForm, setReviewForm] = useState({ name: '', uni: '', prof: '', text: '', rating: 5, sent: false });
   const barRef = useRef(null);
 
   // Скрол: прогрес-бар оновлюється напряму (без ререндеру), state — лише при зміні значення
@@ -977,7 +935,15 @@ const KharkivCorporatePortal = () => {
 
         <Reveal delay={0.2}>
           <div style={{ textAlign: 'center', marginTop: '3.5rem', display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button className="btn btn-primary" onClick={() => alert('Форма залишення відгуку буде відкрита після авторизації')}>Залишити відгук</button>
+            {/* ОНОВЛЕНА КНОПКА ЗАЛИШИТИ ВІДГУК */}
+            <button 
+              className="btn btn-primary" 
+              onClick={() => {
+                setReviewForm({ name: '', uni: '', prof: '', text: '', rating: 5, sent: false });
+                openModal('reviewForm', null);
+              }}>
+              Залишити відгук
+            </button>
             <button className="btn btn-outline" onClick={() => alert('Перехід до повного каталогу відгуків')}>Читати всі відгуки</button>
           </div>
         </Reveal>
@@ -1032,8 +998,6 @@ const KharkivCorporatePortal = () => {
           ))}
         </div>
       </section>
-
-      <AnalyticsDashboard />
 
       <section id="ecosystem" className="sec container">
         <Reveal className="sec-title">
@@ -1102,7 +1066,7 @@ const KharkivCorporatePortal = () => {
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setModal(null)} aria-label="Закрити">✕</button>
 
-            {modal[0] === 'prof' ? (
+            {modal[0] === 'prof' && (
               <>
                 <video controls playsInline preload="metadata" poster={modal[1].poster} className="m-video" autoPlay muted loop>
                   <source src={V} type="video/mp4" />
@@ -1124,7 +1088,9 @@ const KharkivCorporatePortal = () => {
                   )}
                 </div>
               </>
-            ) : (
+            )}
+
+            {modal[0] === 'course' && (
               <div className="m-body">
                 <h2>{modal[1].icon} {modal[1].title}</h2>
                 <p style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--primary)' }}>{modal[1].spec}</p>
@@ -1144,6 +1110,75 @@ const KharkivCorporatePortal = () => {
                 </div>
 
                 <button className="btn btn-primary" onClick={() => setModal(null)}>Зрозуміло</button>
+              </div>
+            )}
+
+            {/* НОВЕ МОДАЛЬНЕ ВІКНО ДЛЯ ФОРМИ ВІДГУКІВ */}
+            {modal[0] === 'reviewForm' && (
+              <div className="m-body">
+                <h2>Залишити відгук</h2>
+                <p>Ваш чесний відгук допоможе іншим уникнути помилок і зробити правильний вибір. Заповнення форми не потребує авторизації.</p>
+                
+                {reviewForm.sent ? (
+                  <div className="fb-done" style={{ background: 'rgba(25, 100, 94, 0.1)', color: 'var(--primary-dark)', marginTop: '2rem' }}>
+                     ✅ Дякуємо! Ваш відгук було успішно надіслано на модерацію.
+                  </div>
+                ) : (
+                  <div className="fb-form" style={{ marginTop: '2rem' }}>
+                    <input 
+                      type="text" 
+                      placeholder="Ваше ім'я (можна анонімно)" 
+                      value={reviewForm.name} 
+                      onChange={e => setReviewForm({ ...reviewForm, name: e.target.value })} 
+                      style={{ border: '1px solid var(--border)' }}
+                    />
+                    <input 
+                      type="text" 
+                      placeholder="Назва ЗВО або Кар'єрного центру" 
+                      value={reviewForm.uni} 
+                      onChange={e => setReviewForm({ ...reviewForm, uni: e.target.value })} 
+                      style={{ border: '1px solid var(--border)' }}
+                    />
+                    <input 
+                      type="text" 
+                      placeholder="Спеціальність / Напрямок" 
+                      value={reviewForm.prof} 
+                      onChange={e => setReviewForm({ ...reviewForm, prof: e.target.value })} 
+                      style={{ border: '1px solid var(--border)' }}
+                    />
+                    <textarea 
+                      rows="4" 
+                      placeholder="Напишіть свій відгук тут..." 
+                      value={reviewForm.text} 
+                      onChange={e => setReviewForm({ ...reviewForm, text: e.target.value })} 
+                      style={{ border: '1px solid var(--border)' }}
+                    />
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.5rem 0' }}>
+                      <b style={{ color: 'var(--text-dark)' }}>Оцінка:</b>
+                      <div style={{ display: 'flex', gap: '0.3rem', fontSize: '1.8rem', cursor: 'pointer', userSelect: 'none' }}>
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <span 
+                            key={star} 
+                            style={{ color: star <= reviewForm.rating ? 'var(--secondary)' : '#e0e0e0', transition: 'color 0.2s' }} 
+                            onClick={() => setReviewForm({ ...reviewForm, rating: star })}
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <button 
+                      className="btn btn-primary" 
+                      disabled={!reviewForm.text.trim()} 
+                      onClick={() => setReviewForm({ ...reviewForm, sent: true })}
+                      style={{ marginTop: '1rem' }}
+                    >
+                      Надіслати відгук
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
