@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import mascotPhoto from '../assets/mascot-photo.png';
+import { createClient } from '@supabase/supabase-js';
+
+// Ініціалізація Supabase з вашими ключами
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://kecltjjcdobidhigmhfd.supabase.co';
+const supabaseKey = process.env.REACT_APP_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_9mjyl5UWYQThAxr5gpO28g_Onhjp29N';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 /* ============================================================
    ДАНІ ПЛАТФОРМИ «АБІТУРІЄНТ +»
@@ -651,17 +657,43 @@ const KharkivCorporatePortal = () => {
   // Стейт форми опитування (3 блоки)
   const [surveyStep, setSurveyStep] = useState(1);
   const [surveyData, setSurveyData] = useState({
-    // Блок 1
     time: '', device: '', impression: 0, functionality: 0, convenience: 0,
-    // Блок 2
     readOthers: '', useful: '', visitAgain: '', integrityViewed: '', integrityImportant: '',
-    // Блок 3
     watchedVideo: '', videoName: '', videoRating: 0,
-    // Дані для публікації картки відгуку
     userName: '', reviewText: ''
   });
   const [surveySent, setSurveySent] = useState(false);
 
+  // Отримання даних з Supabase при завантаженні компонента
+  useEffect(() => {
+    const fetchReviews = async () => {
+      const { data, error } = await supabase
+        .from('reviews')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (data && !error) {
+        // Перетворюємо отримані дані у формат для сайту
+        const dbReviews = data.map(r => ({
+          name: r.user_name,
+          uni: 'Відгук про платформу',
+          prof: r.time_spent || 'Користувач',
+          text: r.review_text,
+          rating: r.rating,
+          date: new Date(r.created_at).getTime()
+        }));
+        
+        // Зберігаємо в стейт (поєднуємо базу та початкові дані)
+        setReviewsList([...dbReviews, ...INITIAL_REVIEWS]);
+      } else if (error) {
+        console.error("Помилка завантаження відгуків:", error);
+      }
+    };
+
+    fetchReviews();
+  }, []);
+
+  // Логіка скролу
   useEffect(() => {
     let ticking = false;
     let last = false;
@@ -716,22 +748,51 @@ const KharkivCorporatePortal = () => {
   const canGoNext2 = surveyData.readOthers && surveyData.useful && surveyData.visitAgain && surveyData.integrityViewed && surveyData.integrityImportant;
   const canSubmit = surveyData.userName.trim().length > 0 && surveyData.reviewText.trim().length > 0;
 
-  const submitSurvey = () => {
-    // 1. Створюємо новий об'єкт відгуку для публікації на сайті
+  // Відправка даних у Supabase
+  const submitSurvey = async () => {
+    // 1. Відправляємо дані в Supabase
+    const { error } = await supabase
+      .from('reviews')
+      .insert([
+        {
+          user_name: surveyData.userName,
+          review_text: surveyData.reviewText,
+          rating: surveyData.impression,
+          time_spent: surveyData.time,
+          device: surveyData.device,
+          functionality_rating: surveyData.functionality,
+          convenience_rating: surveyData.convenience,
+          read_others: surveyData.readOthers,
+          useful: surveyData.useful,
+          visit_again: surveyData.visitAgain,
+          integrity_viewed: surveyData.integrityViewed,
+          integrity_important: surveyData.integrityImportant,
+          watched_video: surveyData.watchedVideo,
+          video_name: surveyData.videoName,
+          video_rating: surveyData.videoRating
+        }
+      ]);
+
+    if (error) {
+      console.error('Помилка збереження в базу:', error);
+      alert('Сталася помилка при відправці відгуку. Перевірте підключення до бази.');
+      return;
+    }
+
+    // 2. Створюємо картку для миттєвого відображення
     const newReview = {
       name: surveyData.userName,
-      uni: 'Відгук про платформу', // Можна змінити
-      prof: surveyData.time, // Вставляємо час як доп інфо
+      uni: 'Відгук про платформу', 
+      prof: surveyData.time, 
       text: surveyData.reviewText,
-      rating: surveyData.impression, // Використовуємо оцінку вражень
+      rating: surveyData.impression, 
       date: Date.now()
     };
     
-    // 2. Додаємо в локальний стейт (він одразу з'явиться на екрані)
-    // УВАГА: На Vercel, щоб це зберігалося назавжди, тут треба зробити fetch() POST запит до бази даних.
+    // Додаємо новий відгук вверх списку
     setReviewsList([newReview, ...reviewsList]);
     
-    // 3. Показуємо успіх
+    // 3. Показуємо повідомлення про успіх
     setSurveySent(true);
   };
 
@@ -955,7 +1016,7 @@ const KharkivCorporatePortal = () => {
                 
                 {surveySent ? (
                   <div className="fb-done" style={{ background: 'rgba(25, 100, 94, 0.1)', color: 'var(--primary-dark)', marginTop: '2rem' }}>
-                     ✅ Дякуємо! Опитування завершено. Ваш відгук успішно опубліковано на сайті.
+                     ✅ Дякуємо! Опитування завершено. Ваш відгук успішно збережено в базі та опубліковано на сайті.
                   </div>
                 ) : (
                   <div className="survey-wrap">
