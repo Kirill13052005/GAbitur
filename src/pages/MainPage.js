@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import mascotPhoto from '../assets/mascot-photo.png';
 import { createClient } from '@supabase/supabase-js';
-
+import { Analytics } from "@vercel/analytics/react"
 // Ініціалізація Supabase з вашими ключами
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://kecltjjcdobidhigmhfd.supabase.co';
 const supabaseKey = process.env.REACT_APP_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_9mjyl5UWYQThAxr5gpO28g_Onhjp29N';
