@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import mascotPhoto from '../assets/mascot-photo.png';
 import { createClient } from '@supabase/supabase-js';
-import { Analytics } from "@vercel/analytics/react";
+import { Analytics } from '@vercel/analytics/react'; // Імпорт аналітики
 
 // Ініціалізація Supabase з вашими ключами
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://kecltjjcdobidhigmhfd.supabase.co';
@@ -652,7 +652,7 @@ const KharkivCorporatePortal = () => {
   const [fb, setFb] = useState({ type: 'feedback', text: '', contact: '', sent: false });
   const barRef = useRef(null);
 
-  // Стейт для списку відгуків (щоб вони оновлювались динамічно на сторінці)
+  // Стейт для списку відгуків
   const [reviewsList, setReviewsList] = useState(INITIAL_REVIEWS);
 
   // Стейт форми опитування (3 блоки)
@@ -1134,6 +1134,9 @@ const KharkivCorporatePortal = () => {
       )}
 
       <Assistant onOpen={openModal} onForm={openForm} />
+
+      {/* ДОДАНО КОМПОНЕНТ АНАЛІТИКИ ТУТ */}
+      <Analytics />
     </>
   );
 };
