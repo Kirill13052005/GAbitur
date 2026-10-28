@@ -60,9 +60,10 @@ const COURSES = [
 ];
 
 const INITIAL_REVIEWS = [
-  { name: 'Олександр Т.', uni: 'Відгук про платформу', prof: 'Software Engineering', text: 'Відеовізитки допомогли зрозуміти, як насправді виглядає професія. Без прикрас і завищених очікувань — саме те, чого бракувало при виборі.', rating: 5, date: Date.now() - 1000000 },
-  { name: 'Марія В.', uni: 'Відгук про платформу', prof: 'Право', text: 'Дуже важливо було знайти правильний шлях. Завдяки відео про професії та чесним відгукам обрала напрямок, у якому впевнена.', rating: 5, date: Date.now() - 5000000 },
-  { name: 'Денис К.', uni: 'Відгук про платформу', prof: 'Кібербезпека', text: 'Зручна платформа з корисною інформацією для старту. Добре, що можна ознайомитися з професією заздалегідь, ще до вступу.', rating: 4, date: Date.now() - 9000000 }
+  { demo: true, name: 'Олександр', uni: 'Технічний університет (приклад)', faculty: 'Факультет комп\'ютерних наук', course: '4 курс (випускник бакалаврату)', tags: ['Електронний відкритий журнал', 'Здача робіт на GitHub', 'Анонімне оцінювання викладачів'], text: 'Жодного натяку на побори, оцінювання суворо за проєктами. Всі лабораторні здаються через GitHub, а бали виставляються у відкритому електронному журналі. Викладачі самі працюють в IT-компаніях і вимагають лише реальних навичок, а не зазубреної теорії з конспекту.', rating: 5, date: Date.now() - 1000000 },
+  { demo: true, name: 'Марія', uni: 'Юридичний університет (приклад)', faculty: 'Інститут права', course: '3 курс', tags: ['Прозора рейтингова система', 'Комісія з доброчесності', 'Судові мут-корти без преференцій'], text: 'Прозора рейтингова система, боялася корупції, але тут все чесно. Кожен бал рахується в особистому кабінеті студента. Студентська рада реально захищає права студентів, а анонімні скриньки та комісія з академічної доброчесності оперативно розбирають будь-які скарги. Хто вчиться — той має стипендію.', rating: 5, date: Date.now() - 5000000 },
+  { demo: true, name: 'Дмитро', uni: 'Політехнічний університет (приклад)', faculty: 'Факультет інформатики та обчислювальної техніки', course: '2 курс', tags: ['Автоматична перевірка тестів', 'Відкриті силабуси'], text: 'Сесія прозора, екзамени письмові з автоматичною перевіркою. Іноді бракує практики, але жодного разу не стикався з вимаганням грошей.', rating: 4, date: Date.now() - 9000000 },
+  { demo: true, name: 'Софія', uni: 'Приватний університет (приклад)', faculty: 'Факультет прикладних наук', course: '3 курс', tags: ['Кодекс академічної честі', 'Менторство від випускників'], text: 'Кодекс честі підписують усі — і студенти, і викладачі. Списування тут просто не прийнято, а викладачі завжди пояснюють оцінки.', rating: 5, date: Date.now() - 12000000 }
 ];
 
 const TIMELINE = [
@@ -385,7 +386,24 @@ ul, ol { list-style: none; }
 .r-name { font-weight: 900; color: var(--primary-dark); font-size: 1.15rem; }
 .r-uni { font-size: 0.8rem; background: var(--bg-main); padding: 0.4rem 0.8rem; border-radius: 50px; color: var(--primary); font-weight: 800; }
 .r-text { color: var(--text-mut); font-weight: 500; font-size: 0.95rem; font-style: italic; flex: 1; line-height: 1.6; }
-.r-stars { color: var(--secondary); margin-top: 1.5rem; font-size: 1.2rem; }
+.r-stars { color: var(--secondary); font-size: 1.2rem; letter-spacing: 1px; }
+.r-top { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.2rem; }
+.r-ico { width: 52px; height: 52px; border-radius: 50%; background: var(--bg-main); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+.r-ut { flex: 1; min-width: 0; }
+.r-fac { font-size: 0.85rem; color: var(--text-mut); font-weight: 600; }
+.r-badge { font-size: 0.75rem; font-weight: 800; padding: 0.35rem 0.8rem; border-radius: 50px; background: rgba(243, 183, 47, 0.2); color: var(--primary-dark); white-space: nowrap; flex-shrink: 0; }
+.r-rating { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.r-rating b { font-weight: 900; color: var(--primary-dark); }
+.r-date { font-size: 0.8rem; color: var(--text-mut); font-weight: 600; }
+.r-tags { margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 0.4rem; }
+.r-tags li { display: flex; gap: 0.6rem; font-size: 0.9rem; font-weight: 600; color: var(--text-dark); }
+.r-tags li::before { content: '✓'; color: var(--primary-light); font-weight: 900; }
+.r-author { display: flex; align-items: center; gap: 0.8rem; margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.r-ava { width: 40px; height: 40px; border-radius: 50%; background: var(--bg-main); color: var(--primary-dark); font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.r-who { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.r-who b { font-weight: 800; color: var(--text-dark); }
+.r-who span { font-size: 0.8rem; color: var(--text-mut); font-weight: 600; }
+.r-role { font-size: 0.8rem; font-weight: 800; padding: 0.4rem 0.9rem; border-radius: 50px; background: var(--bg-main); color: var(--primary); flex-shrink: 0; }
 .course-card { padding: 2.5rem; display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden; background: #fff; }
 .c-head { display: flex; gap: 1.5rem; align-items: flex-start; margin-bottom: 1.5rem; transform: translateZ(30px); }
 .c-icon { font-size: 2.5rem; background: var(--bg-main); width: 75px; height: 75px; display: flex; align-items: center; justify-content: center; border-radius: 20px; border: 1px solid var(--border); color: var(--primary-dark); flex-shrink: 0; }
@@ -657,7 +675,7 @@ const MainPage = () => {
   const [surveyData, setSurveyData] = useState({
     time: '', device: '', impression: 0, functionality: 0, convenience: 0,
     readOthers: '', useful: '', visitAgain: '', integrityViewed: '', integrityImportant: '',
-    watchedVideo: '', videoName: '', videoRating: 0, userName: '', reviewText: ''
+    watchedVideo: '', videoName: '', videoRating: 0, userName: '', reviewText: '', uniName: '', faculty: '', course: ''
   });
   const [surveySent, setSurveySent] = useState(false);
 
@@ -797,7 +815,7 @@ const MainPage = () => {
       const { data, error } = await supabase.from('reviews').select('*').order('created_at', { ascending: false });
       if (data && !error) {
         const dbReviews = data.map(r => ({
-          name: r.user_name, uni: 'Відгук про платформу', prof: r.time_spent || 'Користувач',
+          name: r.user_name, uni: r.university || 'ЗВО не вказано', faculty: r.faculty || '', course: r.course || '', tags: [],
           text: r.review_text, rating: r.rating, date: new Date(r.created_at).getTime()
         }));
         setReviewsList([...dbReviews, ...INITIAL_REVIEWS]);
@@ -866,24 +884,27 @@ const MainPage = () => {
 
   const canGoNext1 = surveyData.time && surveyData.device && surveyData.impression > 0 && surveyData.functionality > 0 && surveyData.convenience > 0;
   const canGoNext2 = surveyData.readOthers && surveyData.useful && surveyData.visitAgain && surveyData.integrityViewed && surveyData.integrityImportant;
-  const canSubmit = surveyData.userName.trim().length > 0 && surveyData.reviewText.trim().length > 0;
+  const canSubmit = surveyData.uniName.trim().length > 0 && surveyData.userName.trim().length > 0 && surveyData.reviewText.trim().length > 0;
 
   const submitSurvey = async () => {
     trackEvent('feedback_rating', { rating: surveyData.impression });
     trackEvent('feedback_submit', { form_name: 'survey_form' });
     trackEvent('generate_lead', { form_name: 'survey_form' });
 
-    const { error } = await supabase.from('reviews').insert([{
+    const row = {
       user_name: surveyData.userName, review_text: surveyData.reviewText, rating: surveyData.impression,
       time_spent: surveyData.time, device: surveyData.device, functionality_rating: surveyData.functionality,
       convenience_rating: surveyData.convenience, read_others: surveyData.readOthers, useful: surveyData.useful,
       visit_again: surveyData.visitAgain, integrity_viewed: surveyData.integrityViewed, integrity_important: surveyData.integrityImportant,
       watched_video: surveyData.watchedVideo, video_name: surveyData.videoName, video_rating: surveyData.videoRating,
       ab_variant: variant
-    }]);
+    };
+    let { error } = await supabase.from('reviews').insert([{ ...row, university: surveyData.uniName, faculty: surveyData.faculty, course: surveyData.course }]);
+    // якщо колонок university/faculty/course ще немає в таблиці — зберігаємо без них
+    if (error) ({ error } = await supabase.from('reviews').insert([row]));
 
     if (!error) {
-      setReviewsList([{ name: surveyData.userName, uni: 'Відгук про платформу', prof: surveyData.time, text: surveyData.reviewText, rating: surveyData.impression, date: Date.now() }, ...reviewsList]);
+      setReviewsList([{ name: surveyData.userName, uni: surveyData.uniName, faculty: surveyData.faculty, course: surveyData.course, tags: [], prof: surveyData.time, text: surveyData.reviewText, rating: surveyData.impression, date: Date.now() }, ...reviewsList]);
       setSurveySent(true);
     } else {
       console.error('Помилка збереження в базу:', error);
@@ -1003,15 +1024,24 @@ const MainPage = () => {
       </section>
 
       <section id="reviews" className="sec container">
-        <Reveal className="sec-title"><h2>Чесні відгуки користувачів</h2><p>Дізнайся правду від реальних користувачів платформи. Чесні відгуки допомагають робити усвідомлений вибір і не витрачати час на ілюзії.</p></Reveal>
+        <Reveal className="sec-title"><h2>Чесні відгуки користувачів</h2><p>Відгуки студентів про університети: чи прозоре оцінювання, чи є побори, як працює доброчесність. Обирай ЗВО на основі досвіду інших.</p></Reveal>
         <div className="grid">
           {[...reviewsList].sort((a,b) => b.date - a.date).map((r, i) => (
             <Reveal key={i} delay={Math.min(i, 3) * 0.1} dir="up">
               <div className="review-card">
-                <div className="r-head"><div className="r-name">{r.name}</div><div className="r-uni">{r.uni}</div></div>
-                <div style={{ marginBottom: '1rem', fontSize: '0.85rem', color: 'var(--primary)', fontWeight: '700' }}>{r.prof}</div>
+                <div className="r-top">
+                  <div className="r-ico">🏛️</div>
+                  <div className="r-ut"><div className="r-name">{r.uni}</div>{r.faculty && <div className="r-fac">{r.faculty}</div>}</div>
+                  {r.demo && <span className="r-badge">Приклад</span>}
+                </div>
+                <div className="r-rating"><span className="r-stars">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span><b>{r.rating}.0</b><span className="r-date">• {new Date(r.date).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' })}</span></div>
                 <div className="r-text">«{r.text}»</div>
-                <div className="r-stars">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</div>
+                {r.tags && r.tags.length > 0 && <ul className="r-tags">{r.tags.map(t => <li key={t}>{t}</li>)}</ul>}
+                <div className="r-author">
+                  <div className="r-ava">{(r.name || '?').charAt(0).toUpperCase()}</div>
+                  <div className="r-who"><b>{r.name}</b>{r.course && <span>{r.course}</span>}</div>
+                  <span className="r-role">Студент</span>
+                </div>
               </div>
             </Reveal>
           ))}
@@ -1020,7 +1050,7 @@ const MainPage = () => {
           <div style={{ textAlign: 'center', marginTop: '3.5rem', display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button className="btn btn-primary" onClick={() => {
                 setSurveyStep(1); setSurveySent(false);
-                setSurveyData({ time: '', device: '', impression: 0, functionality: 0, convenience: 0, readOthers: '', useful: '', visitAgain: '', integrityViewed: '', integrityImportant: '', watchedVideo: '', videoName: '', videoRating: 0, userName: '', reviewText: '' });
+                setSurveyData({ time: '', device: '', impression: 0, functionality: 0, convenience: 0, readOthers: '', useful: '', visitAgain: '', integrityViewed: '', integrityImportant: '', watchedVideo: '', videoName: '', videoRating: 0, userName: '', reviewText: '', uniName: '', faculty: '', course: '' });
                 openModal('survey', null);
               }}>
               Пройти опитування та залишити відгук
@@ -1209,9 +1239,12 @@ const MainPage = () => {
                           </>
                         )}
                         <div style={{ borderTop: '1px solid var(--border)', marginTop: '2rem', paddingTop: '1.5rem' }}>
-                          <div className="s-q">Публікація відгуку на сайті</div>
+                          <div className="s-q">Відгук про ваш ЗВО</div>
+                          <input className="s-input" placeholder="Назва ЗВО (наприклад: ХНУРЕ) *" value={surveyData.uniName} onChange={e => setSurveyData({...surveyData, uniName: e.target.value})} />
+                          <input className="s-input" placeholder="Факультет / інститут" value={surveyData.faculty} onChange={e => setSurveyData({...surveyData, faculty: e.target.value})} />
+                          <input className="s-input" placeholder="Курс (наприклад: 3 курс)" value={surveyData.course} onChange={e => setSurveyData({...surveyData, course: e.target.value})} />
                           <input className="s-input" placeholder="Ваше ім'я (можна анонімно) *" value={surveyData.userName} onChange={e => setSurveyData({...surveyData, userName: e.target.value})} />
-                          <textarea className="s-textarea" rows="3" placeholder="Напишіть Ваш відгук... *" value={surveyData.reviewText} onChange={e => setSurveyData({...surveyData, reviewText: e.target.value})} />
+                          <textarea className="s-textarea" rows="3" placeholder="Розкажіть про оцінювання, викладачів, доброчесність у вашому ЗВО... *" value={surveyData.reviewText} onChange={e => setSurveyData({...surveyData, reviewText: e.target.value})} />
                         </div>
                         <div className="s-nav">
                           <button className="btn btn-outline" onClick={() => setSurveyStep(2)}>← Назад</button>
