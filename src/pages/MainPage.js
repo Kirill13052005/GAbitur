@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import mascotPhoto from '../assets/mascot-photo.png';
 import { createClient } from '@supabase/supabase-js';
-import { Analytics } from '@vercel/analytics/react'; // Імпорт аналітики
+import { Analytics } from '@vercel/analytics/react';
 
-// Ініціалізація Supabase з вашими ключами
+// Инициализация Supabase
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://kecltjjcdobidhigmhfd.supabase.co';
 const supabaseKey = process.env.REACT_APP_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_9mjyl5UWYQThAxr5gpO28g_Onhjp29N';
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -21,7 +21,7 @@ const PROFS = [
   { id: 'law', cat: 'law', icon: '⚖️', title: 'Адвокат / Юрист', short: 'Захищає права людей і бізнесу, супроводжує угоди.', full: 'Юрист досконало знає закони й застосовує їх для захисту клієнта. Відмінний вибір для тих, хто має аналітичний склад розуму та ораторські здібності.', poster: U('1589829085413-56de8ae18c73'), course: 'law1', study: ['Харківський обласний центр зайнятості', 'Youth Career Hub'], opps: ['Власна практика', 'Chief Legal Officer', 'Державна служба'] },
   { id: 'pub', cat: 'law', icon: '🏛️', title: 'Публічне управління', short: 'Оптимізує роботу інституцій і громад.', full: 'Для тих, хто хоче змінювати країну: керувати містами, працювати в міністерствах, впроваджувати реформи та розвивати громади.', poster: U('1541872703-74c5e44368f9'), course: 'law2', study: ['Харківський обласний центр зайнятості', 'Харківський міський центр зайнятості'], opps: ['Міністерства', 'Місцеве самоврядування', 'Міжнародні фонди'] },
   { id: 'doc', cat: 'med', icon: '🩺', title: 'Лікар-хірург', short: 'Рятує життя, виконує складні операції.', full: 'Одна з найвідповідальніших професій. Вимагає багаторічного навчання, стресостійкості та ідеального знання анатомії.', poster: U('1579684385127-1ef15d508118'), course: 'med1', study: ['Харківський обласний центр зайнятості', 'Youth Career Hub'], opps: ['Провідні клініки', 'Місії «Лікарі без кордонів»', 'Приватна практика'] },
-  { id: 'pm', cat: 'business', icon: '👔', title: 'Project Manager', short: 'Керує створенням продуктів і веде команду до результату.', full: 'Диригент команди: не пише код і не малює дизайн, але робить так, щоб все працювало. Найкраща професія для світчерів з гуманітарною або управлінською базою.', poster: U('1522071820081-009f0129c71c'), course: 'bus1', study: ['Харківський обласний центр зайнятості', 'Харківський міський центр зайнятості', 'Youth Career Hub'], opps: ['IT-компанії', 'R&D хаби', 'Міжнародні агенції'] }
+  { id: 'pm', cat: 'business', icon: '👔', title: 'Project Manager', short: 'Керує створення продуктів і веде команду до результату.', full: 'Диригент команди: не пише код і не малює дизайн, але робить так, щоб все працювало. Найкраща професія для світчерів з гуманітарною або управлінською базою.', poster: U('1522071820081-009f0129c71c'), course: 'bus1', study: ['Харківський обласний центр зайнятості', 'Харківський міський центр зайнятості', 'Youth Career Hub'], opps: ['IT-компанії', 'R&D хаби', 'Міжнародні агенції'] }
 ];
 
 const COURSES = [
@@ -106,7 +106,7 @@ function useTilt() {
 }
 
 /* ============================================================
-   КОМПОНЕНТИ
+   КОМПОНЕНТИ ТА AI-ЛОГІКА
    ============================================================ */
 const Mascot = ({ className = '' }) => (
   <div className={`mascot-sprite ${className}`} style={{ backgroundImage: `url(${mascotPhoto})` }} role="img" aria-label="Маскот Харік" />
@@ -135,14 +135,10 @@ const TiltCard = ({ children, className, onClick }) => {
   );
 };
 
-/* ============================================================
-   AI-ЛОГІКА
-   ============================================================ */
 function askHarik(q) {
   const s = q.toLowerCase();
   const prof = PROFS.find((p) => s.includes(p.title.toLowerCase().split(' ')[0].slice(0, 5)) || s.includes(p.id));
   let course = COURSES.find((c) => c.tags.some((t) => s.includes(t.toLowerCase())));
-
   if (!course) {
     if (s.includes('управлін') || s.includes('держ')) course = COURSES.find(c => c.id === 'law2');
     else if (s.includes('медиц') || s.includes('лікар')) course = COURSES.find(c => c.id === 'med1');
@@ -151,7 +147,6 @@ function askHarik(q) {
     else if (s.includes('прав') || s.includes('юрист')) course = COURSES.find(c => c.id === 'law1');
     else if (s.includes('проєкт') || s.includes('pm')) course = COURSES.find(c => c.id === 'bus1');
   }
-
   if (/привіт|вітаю|hello/.test(s)) return { text: 'Привіт! Я Харік 🦝 Ментор платформи. Що шукаємо?' };
   if (/відгук|корупц/.test(s)) return { text: 'Наш пріоритет — прозорість. Користувачі залишають реальні відгуки. Який напрямок цікавить?' };
   if (/куди|звернут|центр/.test(s)) {
@@ -159,7 +154,6 @@ function askHarik(q) {
     return { text: 'Назви професію — і я підберу центр зайнятості.' };
   }
   if (prof) return { text: `Чудовий вибір! ${prof.short} Показати деталі?`, open: ['prof', prof] };
-
   return { text: 'Спробуй запитати: «куди звернутись юристу?» або «курси з управління».' };
 }
 
@@ -261,7 +255,7 @@ const Assistant = React.memo(({ onOpen, onForm }) => {
 });
 
 /* ============================================================
-   СТИЛІ (CSS-in-JS String)
+   СТИЛІ
    ============================================================ */
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;800;900&display=swap');
@@ -274,12 +268,9 @@ ul, ol { list-style: none; }
 ::-webkit-scrollbar { width: 10px; }
 ::-webkit-scrollbar-track { background: var(--bg-main); }
 ::-webkit-scrollbar-thumb { background: var(--primary-light); border-radius: 5px; }
-
 @keyframes rv-up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-
 .container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; }
 .progress-bar { position: fixed; top: 0; left: 0; right: 0; height: 4px; background: var(--secondary); transform: scaleX(0); transform-origin: left; z-index: 300; will-change: transform; }
-
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem; padding: 1.1rem 2.6rem; border-radius: 50px; font-weight: 800; font-size: 0.95rem; text-transform: uppercase; transition: all 0.3s var(--ease-spring); position: relative; z-index: 1; letter-spacing: 0.5px; }
 .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 8px 25px rgba(25, 100, 94, 0.3); }
 .btn-primary:hover:not(:disabled) { background: var(--primary-dark); transform: translateY(-4px); box-shadow: 0 12px 30px rgba(16, 64, 60, 0.4); }
@@ -288,9 +279,7 @@ ul, ol { list-style: none; }
 .btn-yellow:hover:not(:disabled) { background: var(--secondary-hover); transform: translateY(-4px); }
 .btn-outline { border: 2px solid var(--primary); color: var(--primary); font-weight: 800; }
 .btn-outline:hover { background: var(--primary); color: #fff; }
-
 .blobs-wrap { position: fixed; inset: 0; pointer-events: none; z-index: -1; background: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.8) 0%, transparent 50%); }
-
 .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; transition: all 0.4s var(--ease); padding: 1.5rem 0; }
 .nav.scrolled { padding: 0.8rem 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); box-shadow: var(--shadow-sm); border-bottom: 1px solid rgba(255,255,255,0.8); }
 .nav-inner { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
@@ -301,14 +290,12 @@ ul, ol { list-style: none; }
 .nav-links { display: flex; gap: 2rem; background: var(--bg-glass); padding: 0.8rem 2.5rem; border-radius: 50px; border: 1px solid rgba(25, 100, 94, 0.1); box-shadow: var(--shadow-sm); }
 .nav-links a { font-weight: 700; font-size: 0.9rem; color: var(--text-mut); transition: color 0.3s, transform 0.2s; text-transform: uppercase; letter-spacing: 0.5px; }
 .nav-links a:hover { color: var(--primary); transform: translateY(-2px); }
-
 .burger { display: none; width: 46px; height: 46px; border-radius: 14px; background: var(--primary); flex-direction: column; justify-content: center; align-items: center; gap: 5px; flex-shrink: 0; }
 .burger i { display: block; width: 22px; height: 2.5px; background: #fff; border-radius: 2px; transition: transform 0.3s, opacity 0.3s; }
 .burger.open i:nth-child(1) { transform: translateY(7.5px) rotate(45deg); }
 .burger.open i:nth-child(2) { opacity: 0; }
 .burger.open i:nth-child(3) { transform: translateY(-7.5px) rotate(-45deg); }
 .mobile-menu { display: none; }
-
 .hero { min-height: 100vh; min-height: 100svh; display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 2rem; padding: 8rem 5vw 200px; position: relative; overflow: hidden; text-align: left; }
 .hero-left { position: relative; z-index: 2; }
 .hero-toggle { display: inline-flex; background: #fff; border-radius: 50px; padding: 0.4rem; box-shadow: var(--shadow-sm); margin-bottom: 2rem; animation: rv-up 0.8s var(--ease); }
@@ -342,7 +329,6 @@ ul, ol { list-style: none; }
 .sec-title { text-align: center; margin-bottom: 4rem; }
 .sec-title h2 { font-size: clamp(2.2rem, 4vw, 3.5rem); font-weight: 900; color: var(--primary-dark); margin-bottom: 1rem; letter-spacing: -1px; }
 .sec-title p { color: var(--text-mut); font-size: 1.15rem; max-width: 650px; margin: 0 auto; font-weight: 500; }
-
 .filters { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-bottom: 4rem; }
 .filter-btn { padding: 0.9rem 2rem; background: var(--bg-card); border: 2px solid var(--border); border-radius: 50px; font-weight: 800; color: var(--text-mut); transition: all 0.3s; box-shadow: var(--shadow-sm); font-size: 0.95rem; }
 .filter-btn:hover { border-color: var(--primary-light); color: var(--primary); transform: translateY(-3px); box-shadow: var(--shadow-md); }
@@ -360,7 +346,6 @@ ul, ol { list-style: none; }
 .prof-body p { color: var(--text-mut); font-size: 0.95rem; margin-bottom: 1.5rem; flex: 1; font-weight: 500; }
 .prof-more { color: var(--primary); font-weight: 800; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem; transition: gap 0.3s, color 0.3s; text-transform: uppercase; letter-spacing: 0.5px; }
 .tilt-card:hover .prof-more { gap: 1rem; color: var(--secondary); }
-
 .review-card { background: #fff; padding: 2.5rem; border-radius: 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); transition: transform 0.3s, box-shadow 0.3s; height: 100%; display: flex; flex-direction: column; }
 .review-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-md); border-color: var(--primary-light); }
 .r-head { display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
@@ -368,7 +353,6 @@ ul, ol { list-style: none; }
 .r-uni { font-size: 0.8rem; background: var(--bg-main); padding: 0.4rem 0.8rem; border-radius: 50px; color: var(--primary); font-weight: 800; }
 .r-text { color: var(--text-mut); font-weight: 500; font-size: 0.95rem; font-style: italic; flex: 1; line-height: 1.6; }
 .r-stars { color: var(--secondary); margin-top: 1.5rem; font-size: 1.2rem; }
-
 .course-card { padding: 2.5rem; display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden; background: #fff; }
 .c-head { display: flex; gap: 1.5rem; align-items: flex-start; margin-bottom: 1.5rem; transform: translateZ(30px); }
 .c-icon { font-size: 2.5rem; background: var(--bg-main); width: 75px; height: 75px; display: flex; align-items: center; justify-content: center; border-radius: 20px; border: 1px solid var(--border); color: var(--primary-dark); flex-shrink: 0; }
@@ -381,7 +365,6 @@ ul, ol { list-style: none; }
 .course-card li::before { content: '✓'; color: var(--secondary); font-weight: 900; font-size: 1.1rem; }
 .course-card li.mut { color: var(--text-mut); font-weight: 600; font-style: italic; }
 .course-card li.mut::before { content: '+'; color: var(--primary); }
-
 .timeline { position: relative; max-width: 900px; margin: 0 auto; }
 .timeline::before { content: ''; position: absolute; top: 0; bottom: 0; left: 30px; width: 4px; background: var(--border); border-radius: 4px; }
 .tl-item { position: relative; padding-left: 90px; margin-bottom: 4rem; }
@@ -392,7 +375,6 @@ ul, ol { list-style: none; }
 .tl-step { position: absolute; top: -15px; right: 2.5rem; background: var(--primary-dark); color: #fff; font-weight: 900; font-size: 1.2rem; padding: 0.5rem 1.2rem; border-radius: 12px; }
 .tl-content h3 { font-size: 1.5rem; font-weight: 900; margin-bottom: 0.5rem; color: var(--primary-dark); }
 .tl-content p { color: var(--text-mut); font-size: 1.05rem; font-weight: 600; }
-
 .eco-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 2.5rem; }
 .eco-card { background: #fff; padding: 3rem 2.5rem; border-radius: 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); text-align: center; transition: transform 0.3s; }
 .eco-card:hover { transform: translateY(-10px); box-shadow: var(--shadow-md); border-color: var(--primary-light); }
@@ -401,7 +383,6 @@ ul, ol { list-style: none; }
 .eco-card p { font-size: 1.05rem; color: var(--text-mut); margin-bottom: 2rem; font-weight: 500; }
 .eco-link { display: inline-block; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; padding-bottom: 5px; border-bottom: 2px solid var(--secondary); transition: color 0.3s; }
 .eco-card:hover .eco-link { color: var(--secondary); border-color: var(--primary); }
-
 .accordion { max-width: 850px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.2rem; }
 .acc-item { background: #fff; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: all 0.3s; cursor: pointer; box-shadow: var(--shadow-sm); }
 .acc-item:hover { border-color: var(--primary); box-shadow: var(--shadow-md); transform: translateX(5px); }
@@ -412,7 +393,6 @@ ul, ol { list-style: none; }
 .acc-body { max-height: 0; overflow: hidden; transition: max-height 0.5s, padding 0.5s, opacity 0.5s; padding: 0 2.2rem; opacity: 0; }
 .acc-item.open .acc-body { max-height: 300px; padding: 0 2.2rem 1.8rem; opacity: 1; }
 .acc-body p { color: var(--text-mut); font-size: 1.05rem; font-weight: 500; }
-
 .cta-sec { margin-top: 5rem; padding: 7rem 2rem; border-radius: 32px; background: linear-gradient(135deg, var(--primary-dark), var(--primary)); text-align: center; color: #fff; position: relative; overflow: hidden; box-shadow: 0 30px 60px rgba(16, 64, 60, 0.4); }
 .cta-sec::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at top right, rgba(243, 183, 47, 0.15), transparent 50%), radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.1), transparent 50%); }
 .cta-content { position: relative; z-index: 2; max-width: 700px; margin: 0 auto; }
@@ -422,20 +402,16 @@ ul, ol { list-style: none; }
 .fb-form select, .fb-form textarea, .fb-form input { width: 100%; padding: 1rem 1.3rem; border-radius: 16px; border: 2px solid transparent; font-family: inherit; font-size: 1rem; font-weight: 600; outline: none; background: rgba(255,255,255,0.95); color: var(--text-dark); }
 .fb-form select:focus, .fb-form textarea:focus, .fb-form input:focus { border-color: var(--secondary); }
 .fb-done { background: rgba(255,255,255,0.15); padding: 1.5rem; border-radius: 16px; font-weight: 800; font-size: 1.1rem; }
-
 .footer { padding: 5rem 2rem 3rem; text-align: center; color: var(--text-mut); font-size: 0.95rem; font-weight: 600; }
 .footer-logo { font-size: 1.8rem; font-weight: 900; color: var(--primary-dark); display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; letter-spacing: -0.5px; }
 .footer-logo span { color: var(--secondary); font-size: 2rem; }
 .footer p { margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 2.5rem; display: inline-block; width: 100%; max-width: 900px; }
-
 .rv { opacity: 0; transition: opacity 0.8s var(--ease), transform 0.8s var(--ease); transition-delay: calc(var(--d) * 1s); will-change: opacity, transform; }
 .rv-up { transform: translateY(50px); }
 .rv-left { transform: translateX(-50px); }
 .rv-right { transform: translateX(50px); }
 .rv-scale { transform: scale(0.9); }
 .rv.in { opacity: 1; transform: translate(0) scale(1); will-change: auto; }
-
-/* ---------- ЧАТБОТ ---------- */
 .ai { position: fixed; right: 30px; bottom: 30px; z-index: 200; display: flex; flex-direction: column; align-items: flex-end; gap: 1.2rem; }
 .ai-fab { width: 75px; height: 75px; border-radius: 50%; background: #fff; border: 3px solid var(--primary); box-shadow: var(--shadow-lg); cursor: pointer; position: relative; overflow: hidden; transition: transform 0.3s; }
 .ai-fab:hover { transform: scale(1.15) rotate(-8deg); box-shadow: 0 20px 40px rgba(16, 64, 60, 0.3); }
@@ -443,7 +419,6 @@ ul, ol { list-style: none; }
 .fab-sprite { position: absolute; inset: -15%; background-size: 400% auto; background-position: 84% 15%; pointer-events: none; }
 .ping { position: absolute; top: 4px; right: 4px; width: 16px; height: 16px; background: var(--secondary); border-radius: 50%; box-shadow: 0 0 0 0 rgba(243, 183, 47, 0.7); animation: ping 2s infinite; }
 @keyframes ping { 70% { box-shadow: 0 0 0 15px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
-
 .ai-panel { position: absolute; bottom: 0; right: 0; width: 400px; height: 650px; max-height: 85vh; background: var(--bg-glass); backdrop-filter: blur(25px); border-radius: 24px; border: 1px solid rgba(255,255,255,0.8); box-shadow: 0 35px 70px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; transform: translateY(30px) scale(0.95); opacity: 0; pointer-events: none; visibility: hidden; transition: transform 0.5s var(--ease-spring), opacity 0.4s, visibility 0.4s; transform-origin: bottom right; }
 .ai-panel.open { transform: translateY(0) scale(1); opacity: 1; pointer-events: auto; visibility: visible; }
 .ai-head { background: var(--primary); color: #fff; padding: 1.4rem; display: flex; align-items: center; gap: 1.2rem; border-bottom: 4px solid var(--secondary); }
@@ -453,7 +428,6 @@ ul, ol { list-style: none; }
 .ai-head .badge { font-size: 0.75rem; background: rgba(255,255,255,0.2); color: #fff; padding: 3px 8px; border-radius: 6px; font-weight: 800; letter-spacing: 0.5px; }
 .ai-close { margin-left: auto; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.15); display: flex; justify-content: center; align-items: center; transition: background 0.3s, transform 0.3s; font-size: 1.1rem; flex-shrink: 0; }
 .ai-close:hover { background: var(--secondary); color: var(--primary-dark); transform: rotate(90deg); }
-
 .ai-body { flex: 1; padding: 1.5rem; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 1.2rem; background: rgba(255,255,255,0.5); }
 .msg-wrap { display: flex; flex-direction: column; max-width: 85%; animation: rv-up 0.4s var(--ease-spring); }
 .msg-wrap.bot { align-self: flex-start; }
@@ -468,15 +442,12 @@ ul, ol { list-style: none; }
 @keyframes blink { 0%, 80%, 100% { opacity: 0.25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
 .msg-act { margin-top: 0.6rem; background: var(--secondary); color: var(--primary-dark); font-weight: 900; font-size: 0.85rem; padding: 0.5rem 1.2rem; border-radius: 50px; align-self: flex-start; box-shadow: var(--shadow-sm); transition: transform 0.2s; text-transform: uppercase; }
 .msg-act:hover { transform: scale(1.05); }
-
 .kb { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.6rem; width: 100%; min-width: 240px; }
 .kb button { background: #fff; border: 1px solid var(--primary-light); color: var(--primary); font-weight: 800; font-size: 0.85rem; padding: 0.7rem 1rem; border-radius: 12px; text-align: center; transition: all 0.2s; }
 .kb button:hover { background: var(--primary); color: #fff; }
-
 .chips { padding: 0.5rem 1.2rem 1rem; display: flex; gap: 0.5rem; background: rgba(255,255,255,0.5); }
 .chips button { flex: 1; white-space: normal; padding: 0.6rem 0.4rem; background: #fff; border: 1px solid var(--primary-light); border-radius: 12px; font-size: 0.78rem; font-weight: 800; color: var(--primary); transition: all 0.2s; box-shadow: var(--shadow-sm); }
 .chips button:hover { background: var(--primary); color: #fff; }
-
 .ai-input { position: relative; padding: 1.2rem; background: #fff; border-top: 1px solid var(--border); display: flex; gap: 0.8rem; align-items: center; }
 .ai-input input { flex: 1; min-width: 0; padding: 0.9rem 1.4rem; border-radius: 50px; border: 2px solid var(--bg-main); outline: none; font-family: inherit; font-size: 0.95rem; font-weight: 600; transition: border-color 0.3s, background 0.3s; background: var(--bg-main); }
 .ai-input input:focus { border-color: var(--primary-light); background: #fff; }
@@ -489,7 +460,6 @@ ul, ol { list-style: none; }
 .ai-dd { position: absolute; bottom: calc(100% - 4px); left: 1.2rem; background: #fff; border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow-md); padding: 0.4rem; display: flex; flex-direction: column; min-width: 230px; z-index: 5; }
 .ai-input .ai-dd button { width: 100%; height: auto; border-radius: 10px; padding: 0.8rem 1rem; text-align: left; font-weight: 800; font-size: 0.9rem; color: var(--primary-dark); background: none; pointer-events: auto; justify-content: flex-start; }
 .ai-input .ai-dd button:hover { background: var(--bg-main); color: var(--primary-dark); }
-
 .modal-overlay { position: fixed; inset: 0; background: rgba(29, 45, 42, 0.85); backdrop-filter: blur(10px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 2rem; opacity: 0; animation: fadeIn 0.3s forwards; }
 @keyframes fadeIn { to { opacity: 1; } }
 .modal-content { background: #fff; width: 100%; max-width: 850px; max-height: 90vh; overflow-y: auto; overscroll-behavior: contain; border-radius: 24px; position: relative; transform: translateY(40px) scale(0.95); opacity: 0; animation: popIn 0.5s var(--ease-spring) forwards; box-shadow: 0 50px 100px rgba(0,0,0,0.4); }
@@ -504,7 +474,6 @@ ul, ol { list-style: none; }
 .m-body ul { padding-left: 1.5rem; margin-bottom: 2rem; }
 .m-body li { margin-bottom: 0.6rem; font-weight: 700; list-style-type: disc; color: var(--text-dark); }
 .modal-content .btn { width: 100%; margin-top: 1.5rem; padding: 1.2rem; font-size: 1.1rem; }
-
 .m-mods { display: flex; flex-direction: column; gap: 1.2rem; counter-reset: mod; margin-top: 2rem; }
 .m-mod { background: var(--bg-main); border: 1px solid var(--border); border-radius: 16px; padding: 1.8rem; position: relative; padding-left: 4.5rem; opacity: 0; animation: slideInRight 0.5s var(--ease-spring) forwards; }
 .m-mod:nth-child(1) { animation-delay: 0.1s; }
@@ -517,8 +486,6 @@ ul, ol { list-style: none; }
 .m-mod-head h4 { font-size: 1.2rem; font-weight: 900; color: var(--text-dark); }
 .m-mod-head span { background: rgba(25, 100, 94, 0.1); color: var(--primary-dark); font-weight: 800; font-size: 0.85rem; padding: 0.4rem 1rem; border-radius: 50px; text-transform: uppercase; }
 .m-mod p { color: var(--text-mut); font-size: 1rem; font-weight: 500; margin: 0; }
-
-/* Форма опитування */
 .survey-wrap { margin-top: 1.5rem; }
 .survey-progress { display: flex; gap: 5px; margin-bottom: 2rem; }
 .survey-progress-bar { flex: 1; height: 6px; background: var(--bg-main); border-radius: 3px; transition: background 0.3s; }
@@ -537,7 +504,6 @@ ul, ol { list-style: none; }
 .s-input:focus, .s-textarea:focus { border-color: var(--primary-light); }
 .s-nav { display: flex; gap: 1rem; margin-top: 2rem; justify-content: flex-end; }
 .s-nav .btn { width: auto; margin-top: 0; }
-
 @media (hover: none) {
   .tilt-card, .tilt-card:hover { transform: none !important; }
   .prof-body, .c-head, .course-card h3, .course-card p, .course-card ul { transform: none; }
@@ -546,7 +512,6 @@ ul, ol { list-style: none; }
   .tl-item:hover::after { height: 0; }
   .btn:hover, .filter-btn:hover, .marquee-item:hover { transform: none; }
 }
-
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr; padding: 7rem 1.5rem 140px; text-align: center; }
   .hero-slogan { margin-left: auto; margin-right: auto; }
@@ -556,7 +521,6 @@ ul, ol { list-style: none; }
   .hero-mascot { height: 360px; }
   .hero-assist { display: none; }
 }
-
 @media (max-width: 768px) {
   .container { padding: 0 1rem; }
   .nav { padding: 0.8rem 0; }
@@ -623,7 +587,6 @@ ul, ol { list-style: none; }
   .m-mod-head { flex-direction: column; align-items: flex-start; gap: 0.4rem; }
   .ai-input input, .fb-form select, .fb-form textarea, .fb-form input, .s-input, .s-textarea { font-size: 16px; }
 }
-
 @media (max-width: 600px) {
   .ai { right: 14px; bottom: calc(14px + env(safe-area-inset-bottom)); }
   .ai-fab { width: 62px; height: 62px; }
@@ -643,7 +606,7 @@ ul, ol { list-style: none; }
 /* ============================================================
    ГОЛОВНИЙ КОМПОНЕНТ СТОРІНКИ
    ============================================================ */
-const KharkivCorporatePortal = () => {
+const MainPage = () => {
   const [cat, setCat] = useState('all');
   const [modal, setModal] = useState(null);
   const [scrolled, setScrolled] = useState(false);
@@ -651,50 +614,183 @@ const KharkivCorporatePortal = () => {
   const [activeTab, setActiveTab] = useState('video');
   const [fb, setFb] = useState({ type: 'feedback', text: '', contact: '', sent: false });
   const barRef = useRef(null);
-
-  // Стейт для списку відгуків
   const [reviewsList, setReviewsList] = useState(INITIAL_REVIEWS);
-
+  
   // Стейт форми опитування (3 блоки)
   const [surveyStep, setSurveyStep] = useState(1);
   const [surveyData, setSurveyData] = useState({
     time: '', device: '', impression: 0, functionality: 0, convenience: 0,
     readOthers: '', useful: '', visitAgain: '', integrityViewed: '', integrityImportant: '',
-    watchedVideo: '', videoName: '', videoRating: 0,
-    userName: '', reviewText: ''
+    watchedVideo: '', videoName: '', videoRating: 0, userName: '', reviewText: ''
   });
   const [surveySent, setSurveySent] = useState(false);
 
-  // Отримання даних з Supabase при завантаженні компонента
+  // --- A/B ТЕСТУВАННЯ ТА АНАЛІТИКА ---
+  const [variant, setVariant] = useState('a');
+  const trackedForms = useRef(new Set());
+  const trackedSections = useRef(new Set());
+
+  // 1. ИНИЦИАЛИЗАЦИЯ GA4 И SEO (META ТЕГОВ) ЧИСТО В REACT
+  useEffect(() => {
+    // Установка Title
+    document.title = "Абітурієнт+ | Усвідомлений вибір професії та чесний вступ";
+
+    // Функция для динамического добавления мета-тегов
+    const setMetaTag = (name, content, isProperty = false) => {
+      const attr = isProperty ? 'property' : 'name';
+      let meta = document.querySelector(`meta[${attr}="${name}"]`);
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute(attr, name);
+        document.head.appendChild(meta);
+      }
+      meta.setAttribute('content', content);
+    };
+
+    // SEO и Open Graph для превью ссылок в Telegram/Facebook
+    setMetaTag('description', "Платформа для абітурієнтів: обирай професію за допомогою відеовізиток, читай чесні відгуки про виші та будуй кар'єру без корупції.");
+    setMetaTag('og:title', "Абітурієнт+ | Чесний вибір майбутнього", true);
+    setMetaTag('og:description', "Відеовізитки професій, підготовчі курси та відгуки про університети без цензури.", true);
+    setMetaTag('og:image', "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80", true);
+    setMetaTag('og:type', "website", true);
+
+    // ВАЖНО: Замените G-XXXXXXXXXX на ваш Measurement ID от Google Analytics 4
+    const measurementId = 'G-CEBFEDC0W2'; 
+    if (!document.getElementById('ga-script')) {
+      const script1 = document.createElement('script');
+      script1.id = 'ga-script';
+      script1.async = true;
+      script1.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
+      document.head.appendChild(script1);
+
+      const script2 = document.createElement('script');
+      script2.id = 'ga-config';
+      script2.innerHTML = `
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        // Отключаем авто-просмотры, так как мы трекаем их через React IntersectionObserver
+        gtag('config', '${measurementId}', { send_page_view: false });
+      `;
+      document.head.appendChild(script2);
+    }
+  }, []);
+
+  // Хелпер для отправки событий в GA4
+  const trackEvent = useCallback((eventName, params = {}) => {
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', eventName, { ...params, ab_variant: variant });
+    } else {
+      console.log(`GA4 [${eventName}]`, { ...params, ab_variant: variant });
+    }
+  }, [variant]);
+
+  // 2. A/B ТЕСТИРОВАНИЕ (РАСПРЕДЕЛЕНИЕ В REACT)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const forceVariant = urlParams.get('v');
+    let currentVariant = localStorage.getItem('ab_variant');
+    
+    if (forceVariant === 'a' || forceVariant === 'b') {
+      currentVariant = forceVariant;
+      localStorage.setItem('ab_variant', forceVariant);
+    } else if (!currentVariant) {
+      currentVariant = Math.random() < 0.5 ? 'a' : 'b';
+      localStorage.setItem('ab_variant', currentVariant);
+    }
+    setVariant(currentVariant);
+
+    // Установка свойства пользователя (ab_variant)
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('set', 'user_properties', { ab_variant: currentVariant });
+      window.gtag('event', 'page_view', { page_title: 'Головна', page_path: '/', ab_variant: currentVariant });
+    }
+  }, []);
+
+  // 3. ОТСЛЕЖИВАНИЕ СКРОЛЛ-ГЛУБИНЫ
+  useEffect(() => {
+    const thresholds = [25, 50, 75, 100];
+    const trackedScrolls = new Set();
+    const onScroll = () => {
+      const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      if (docHeight <= 0) return;
+      const scrollPercent = (window.scrollY / docHeight) * 100;
+      
+      thresholds.forEach(t => {
+        if (scrollPercent >= t && !trackedScrolls.has(t)) {
+          trackedScrolls.add(t);
+          trackEvent('scroll_depth', { percent_scrolled: t });
+        }
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [trackEvent]);
+
+  // 4. ОТСЛЕЖИВАНИЕ ЭТИЧЕСКОГО БЛОКА (values_block_view & engaged)
+  useEffect(() => {
+    const el = document.getElementById('reviews'); // Секция отзывов как социальный блок
+    if (!el) return;
+    let timer;
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+        trackEvent('values_block_view');
+        timer = setTimeout(() => {
+          trackEvent('values_block_engaged');
+        }, 5000);
+      } else {
+        clearTimeout(timer);
+      }
+    }, { threshold: 0.5 });
+    io.observe(el);
+    return () => { io.disconnect(); clearTimeout(timer); };
+  }, [trackEvent]);
+
+  // 5. ОТСЛЕЖИВАНИЕ ПОЯВЛЕНИЯ НОВЫХ СЕКЦИЙ (page_view)
+  useEffect(() => {
+    const sections = ['professions', 'reviews', 'courses', 'timeline', 'ecosystem', 'faq', 'cta'];
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !trackedSections.current.has(entry.target.id)) {
+          trackedSections.current.add(entry.target.id);
+          trackEvent('page_view', { page_path: `/#${entry.target.id}` });
+        }
+      });
+    }, { threshold: 0.3 });
+    
+    sections.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) io.observe(el);
+    });
+    return () => io.disconnect();
+  }, [trackEvent]);
+
+  // Хелпер для фокуса на форме
+  const handleFormStart = (formName) => {
+    if (!trackedForms.current.has(formName)) {
+      trackedForms.current.add(formName);
+      trackEvent('form_start', { form_name: formName });
+    }
+  };
+
+  // Отримання даних з Supabase
   useEffect(() => {
     const fetchReviews = async () => {
-      const { data, error } = await supabase
-        .from('reviews')
-        .select('*')
-        .order('created_at', { ascending: false });
-
+      const { data, error } = await supabase.from('reviews').select('*').order('created_at', { ascending: false });
       if (data && !error) {
-        // Перетворюємо отримані дані у формат для сайту
         const dbReviews = data.map(r => ({
-          name: r.user_name,
-          uni: 'Відгук про платформу',
-          prof: r.time_spent || 'Користувач',
-          text: r.review_text,
-          rating: r.rating,
-          date: new Date(r.created_at).getTime()
+          name: r.user_name, uni: 'Відгук про платформу', prof: r.time_spent || 'Користувач',
+          text: r.review_text, rating: r.rating, date: new Date(r.created_at).getTime()
         }));
-        
-        // Зберігаємо в стейт (поєднуємо базу та початкові дані)
         setReviewsList([...dbReviews, ...INITIAL_REVIEWS]);
       } else if (error) {
         console.error("Помилка завантаження відгуків:", error);
       }
     };
-
     fetchReviews();
   }, []);
 
-  // Логіка скролу
+  // Логика прогресс-бара скролла
   useEffect(() => {
     let ticking = false;
     let last = false;
@@ -722,14 +818,19 @@ const KharkivCorporatePortal = () => {
     <div key={i} className="sk-b" style={{ height: `${h}%`, animationDelay: `${i * 0.05}s` }} />
   )), []);
 
-  const go = useCallback((id) => {
+  const go = useCallback((id, ctaName = null) => {
+    if (ctaName) trackEvent('cta_click', { cta_name: ctaName });
     setMenu(false);
     if (id === 'professions') setActiveTab('video');
     if (id === 'courses') setActiveTab('courses');
     setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }), 30);
-  }, []);
+  }, [trackEvent]);
 
-  const openModal = useCallback((type, item) => setModal([type, item]), []);
+  const openModal = useCallback((type, item) => {
+    trackEvent('feature_use', { feature_name: `open_modal_${type}` });
+    setModal([type, item]);
+  }, [trackEvent]);
+
   const openForm = useCallback((type) => {
     setFb((f) => ({ ...f, type, sent: false }));
     setTimeout(() => document.getElementById('cta')?.scrollIntoView({ behavior: 'smooth' }), 30);
@@ -741,73 +842,57 @@ const KharkivCorporatePortal = () => {
     setModal(null);
     setCat(course.cat);
     setActiveTab('courses');
-    setTimeout(() => { go('courses'); setTimeout(() => openModal('course', course), 800); }, 150);
+    setTimeout(() => { go('courses', 'modal_go_course'); setTimeout(() => openModal('course', course), 800); }, 150);
   };
 
-  // Валідація кроків форми
   const canGoNext1 = surveyData.time && surveyData.device && surveyData.impression > 0 && surveyData.functionality > 0 && surveyData.convenience > 0;
   const canGoNext2 = surveyData.readOthers && surveyData.useful && surveyData.visitAgain && surveyData.integrityViewed && surveyData.integrityImportant;
   const canSubmit = surveyData.userName.trim().length > 0 && surveyData.reviewText.trim().length > 0;
 
-  // Відправка даних у Supabase
   const submitSurvey = async () => {
-    // 1. Відправляємо дані в Supabase
-    const { error } = await supabase
-      .from('reviews')
-      .insert([
-        {
-          user_name: surveyData.userName,
-          review_text: surveyData.reviewText,
-          rating: surveyData.impression,
-          time_spent: surveyData.time,
-          device: surveyData.device,
-          functionality_rating: surveyData.functionality,
-          convenience_rating: surveyData.convenience,
-          read_others: surveyData.readOthers,
-          useful: surveyData.useful,
-          visit_again: surveyData.visitAgain,
-          integrity_viewed: surveyData.integrityViewed,
-          integrity_important: surveyData.integrityImportant,
-          watched_video: surveyData.watchedVideo,
-          video_name: surveyData.videoName,
-          video_rating: surveyData.videoRating
-        }
-      ]);
+    trackEvent('feedback_rating', { rating: surveyData.impression });
+    trackEvent('feedback_submit', { form_name: 'survey_form' });
+    trackEvent('generate_lead', { form_name: 'survey_form' });
 
-    if (error) {
+    const { error } = await supabase.from('reviews').insert([{
+      user_name: surveyData.userName, review_text: surveyData.reviewText, rating: surveyData.impression,
+      time_spent: surveyData.time, device: surveyData.device, functionality_rating: surveyData.functionality,
+      convenience_rating: surveyData.convenience, read_others: surveyData.readOthers, useful: surveyData.useful,
+      visit_again: surveyData.visitAgain, integrity_viewed: surveyData.integrityViewed, integrity_important: surveyData.integrityImportant,
+      watched_video: surveyData.watchedVideo, video_name: surveyData.videoName, video_rating: surveyData.videoRating,
+      ab_variant: variant // Зберігаємо варіант у БД
+    }]);
+
+    if (!error) {
+      setReviewsList([{ name: surveyData.userName, uni: 'Відгук про платформу', prof: surveyData.time, text: surveyData.reviewText, rating: surveyData.impression, date: Date.now() }, ...reviewsList]);
+      setSurveySent(true);
+    } else {
       console.error('Помилка збереження в базу:', error);
       alert('Сталася помилка при відправці відгуку. Перевірте підключення до бази.');
-      return;
     }
+  };
 
-    // 2. Створюємо картку для миттєвого відображення
-    const newReview = {
-      name: surveyData.userName,
-      uni: 'Відгук про платформу', 
-      prof: surveyData.time, 
-      text: surveyData.reviewText,
-      rating: surveyData.impression, 
-      date: Date.now()
-    };
-    
-    // Додаємо новий відгук вверх списку
-    setReviewsList([newReview, ...reviewsList]);
-    
-    // 3. Показуємо повідомлення про успіх
-    setSurveySent(true);
+  const handleFeedbackSubmit = () => {
+    trackEvent('generate_lead', { form_name: 'footer_feedback_form' });
+    setFb({ ...fb, sent: true });
   };
 
   const renderStars = (field, currentVal) => (
     <div className="s-stars">
       {[1, 2, 3, 4, 5].map(star => (
-        <span 
-          key={star} 
-          className={`s-star ${star <= currentVal ? 'active' : ''}`}
-          onClick={() => setSurveyData({ ...surveyData, [field]: star })}
-        >★</span>
+        <span key={star} className={`s-star ${star <= currentVal ? 'active' : ''}`} onClick={() => setSurveyData({ ...surveyData, [field]: star })}>★</span>
       ))}
     </div>
   );
+
+  // КОНТЕНТ A/B ТЕСТА
+  const heroContent = variant === 'a' ? {
+    title: "Обери професію без помилок та марних очікувань",
+    subtitle: "Переглядай реальні відеовізитки спеціальностей, проходь базові курси та знаходь першу роботу чи стажування за допомогою кар'єрних центрів Харкова."
+  } : {
+    title: "Вступ без корупції: обирай доброчесні університети",
+    subtitle: "Захисти своє майбутнє. Читай чесні відгуки про виші, повідомляй про хабарі анонімно та отримуй рівний доступ до безкоштовної освіти."
+  };
 
   return (
     <>
@@ -817,32 +902,41 @@ const KharkivCorporatePortal = () => {
 
       <nav className={`nav ${scrolled ? 'scrolled' : ''}`}>
         <div className="container nav-inner">
-          <a href="#top" className="logo" onClick={(e) => { e.preventDefault(); go('top'); }}>
+          <a href="#top" className="logo" onClick={(e) => { e.preventDefault(); go('top', 'nav_logo'); }}>
             <div className="logo-icon">🚀</div> Абітурієнт<span>+</span>
           </a>
           <div className="nav-links">
-            {NAV_LINKS.map(([id, l]) => <a key={id} href={`#${id}`} onClick={(e) => { e.preventDefault(); go(id); }}>{l}</a>)}
+            <a href="#professions" onClick={(e) => { e.preventDefault(); go('professions', 'nav_professions'); }}>Професії</a>
+            <a href="#courses" onClick={(e) => { e.preventDefault(); go('courses', 'nav_courses'); }}>Курси</a>
+            <a href="#timeline" onClick={(e) => { e.preventDefault(); go('timeline', 'nav_timeline'); }}>План дій</a>
+            <a href="#faq" onClick={(e) => { e.preventDefault(); go('faq', 'nav_faq'); }}>FAQ</a>
           </div>
-          <button className="btn btn-outline nav-fb" onClick={() => go('cta')}>ЗВОРОТНІЙ ЗВ'ЯЗОК</button>
+          <button className="btn btn-outline nav-fb" onClick={() => go('cta', 'nav_feedback')}>ЗВОРОТНІЙ ЗВ'ЯЗОК</button>
           <button className={`burger ${menu ? 'open' : ''}`} onClick={() => setMenu((m) => !m)} aria-label="Меню"><i /><i /><i /></button>
         </div>
         <div className={`mobile-menu ${menu ? 'open' : ''}`}>
-          {[...NAV_LINKS, ['cta', 'Зворотній зв\'язок']].map(([id, l]) => <a key={id} href={`#${id}`} onClick={(e) => { e.preventDefault(); go(id); }}>{l}</a>)}
+          <a href="#professions" onClick={(e) => { e.preventDefault(); go('professions', 'nav_mob_professions'); }}>Професії</a>
+          <a href="#courses" onClick={(e) => { e.preventDefault(); go('courses', 'nav_mob_courses'); }}>Курси</a>
+          <a href="#timeline" onClick={(e) => { e.preventDefault(); go('timeline', 'nav_mob_timeline'); }}>План дій</a>
+          <a href="#faq" onClick={(e) => { e.preventDefault(); go('faq', 'nav_mob_faq'); }}>FAQ</a>
+          <a href="#cta" onClick={(e) => { e.preventDefault(); go('cta', 'nav_mob_feedback'); }}>Зворотній зв'язок</a>
         </div>
       </nav>
 
       <header id="top" className="hero">
         <div className="hero-left">
           <div className="hero-toggle">
-            <button className={`ht-btn ${activeTab === 'video' ? 'active' : ''}`} onClick={() => go('professions')}>ВІДЕО ПРО ПРОФЕСІЇ</button>
-            <button className={`ht-btn ${activeTab === 'courses' ? 'active' : ''}`} onClick={() => go('courses')}>ПІДГОТОВЧІ КУРСИ</button>
+            <button className={`ht-btn ${activeTab === 'video' ? 'active' : ''}`} onClick={() => go('professions', 'hero_tab_video')}>ВІДЕО ПРО ПРОФЕСІЇ</button>
+            <button className={`ht-btn ${activeTab === 'courses' ? 'active' : ''}`} onClick={() => go('courses', 'hero_tab_courses')}>ПІДГОТОВЧІ КУРСИ</button>
           </div>
           <div className="hero-slogan">Обирай свідоме майбутнє</div>
-          <h1>Усвідомлений вибір професії <span>і вступ до доброчесного ЗВО</span></h1>
-          <p>Платформа допомагає випускникам шкіл та коледжів усвідомлено обрати професію за допомогою наочних відеовізиток спеціальностей і вступити до доброчесного університету на основі відкритих відгуків студентів, захищаючи від корупційних ризиків, застарілої освіти та марної витрати часу.</p>
+          
+          <h1>{heroContent.title.split(':').map((part, i) => i === 1 ? <span key={i}>{part}</span> : part)}</h1>
+          <p>{heroContent.subtitle}</p>
+          
           <div className="hero-actions">
-            <button className="btn btn-primary" onClick={() => go('professions')}>Дивитись професії</button>
-            <button className="btn btn-outline" onClick={() => go('reviews')}>Чесні відгуки</button>
+            <button className="btn btn-primary" onClick={() => go('professions', 'hero_main_cta')}>Дивитись професії</button>
+            <button className="btn btn-outline" onClick={() => go('reviews', 'hero_secondary_cta')}>Чесні відгуки</button>
           </div>
         </div>
         <div className="hero-right">
@@ -866,7 +960,7 @@ const KharkivCorporatePortal = () => {
         <Reveal className="sec-title"><h2>Навігація Професіями</h2><p>Подолай невизначеність! Дізнайся реалії спеціальностей через відеовізитки без "рожевих окулярів" і марних очікувань.</p></Reveal>
         <Reveal delay={0.1}>
           <div className="filters">
-            {Object.entries(CATS).map(([k, v]) => <button key={k} className={`filter-btn ${cat === k ? 'active' : ''}`} onClick={() => setCat(k)}>{v}</button>)}
+            {Object.entries(CATS).map(([k, v]) => <button key={k} className={`filter-btn ${cat === k ? 'active' : ''}`} onClick={() => { setCat(k); trackEvent('feature_use', { feature_name: `filter_${k}` }); }}>{v}</button>)}
           </div>
         </Reveal>
         <div className="grid">
@@ -884,7 +978,6 @@ const KharkivCorporatePortal = () => {
       <section id="reviews" className="sec container">
         <Reveal className="sec-title"><h2>Чесні відгуки користувачів</h2><p>Дізнайся правду про кар'єрні центри Харкова. Ми формуємо рейтинг якості допомоги, захищаючи тебе від марної витрати часу та ілюзій.</p></Reveal>
         <div className="grid">
-          {/* Сортуємо по даті, щоб нові були першими */}
           {[...reviewsList].sort((a,b) => b.date - a.date).map((r, i) => (
             <Reveal key={i} delay={Math.min(i, 3) * 0.1} dir="up">
               <div className="review-card">
@@ -898,16 +991,9 @@ const KharkivCorporatePortal = () => {
         </div>
         <Reveal delay={0.2}>
           <div style={{ textAlign: 'center', marginTop: '3.5rem', display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button 
-              className="btn btn-primary" 
-              onClick={() => {
-                setSurveyStep(1);
-                setSurveySent(false);
-                setSurveyData({
-                  time: '', device: '', impression: 0, functionality: 0, convenience: 0,
-                  readOthers: '', useful: '', visitAgain: '', integrityViewed: '', integrityImportant: '',
-                  watchedVideo: '', videoName: '', videoRating: 0, userName: '', reviewText: ''
-                });
+            <button className="btn btn-primary" onClick={() => {
+                setSurveyStep(1); setSurveySent(false);
+                setSurveyData({ time: '', device: '', impression: 0, functionality: 0, convenience: 0, readOthers: '', useful: '', visitAgain: '', integrityViewed: '', integrityImportant: '', watchedVideo: '', videoName: '', videoRating: 0, userName: '', reviewText: '' });
                 openModal('survey', null);
               }}>
               Пройти опитування та залишити відгук
@@ -961,19 +1047,19 @@ const KharkivCorporatePortal = () => {
           <div className="cta-sec">
             <div className="cta-content">
               <h2>Зворотній зв'язок!</h2>
-              <p>Маєш питання або хочеш залишити відгук? Відгуки про корупцію приймаються анонімно, після авторизації та модерації.</p>
+              <p>Маєш питання або хочеш залишити відгук? Відгуки про корупцію приймаються анонімно.</p>
               {fb.sent ? (
                 <div className="fb-done">✅ Дякуємо! Ми отримали твоє повідомлення.</div>
               ) : (
                 <div className="fb-form">
-                  <select value={fb.type} onChange={(e) => setFb({ ...fb, type: e.target.value })}>
+                  <select value={fb.type} onFocus={() => handleFormStart('footer_feedback')} onChange={(e) => setFb({ ...fb, type: e.target.value })}>
                     <option value="feedback">Питання / зворотній зв'язок</option>
                     <option value="corruption">Анонімний відгук про корупцію в ЗВО</option>
                     <option value="center">Відгук про центр зайнятості</option>
                   </select>
-                  <textarea rows="4" placeholder="Твоє повідомлення…" value={fb.text} onChange={(e) => setFb({ ...fb, text: e.target.value })} />
-                  {fb.type !== 'corruption' && <input placeholder="Email або Telegram (необов'язково)" value={fb.contact} onChange={(e) => setFb({ ...fb, contact: e.target.value })} />}
-                  <button className="btn btn-yellow" disabled={!fb.text.trim()} onClick={() => setFb({ ...fb, sent: true })}>Надіслати</button>
+                  <textarea rows="4" placeholder="Твоє повідомлення…" value={fb.text} onFocus={() => handleFormStart('footer_feedback')} onChange={(e) => setFb({ ...fb, text: e.target.value })} />
+                  {fb.type !== 'corruption' && <input placeholder="Email або Telegram (необов'язково)" onFocus={() => handleFormStart('footer_feedback')} value={fb.contact} onChange={(e) => setFb({ ...fb, contact: e.target.value })} />}
+                  <button className="btn btn-yellow" disabled={!fb.text.trim()} onClick={handleFeedbackSubmit}>Надіслати</button>
                 </div>
               )}
             </div>
@@ -1009,85 +1095,70 @@ const KharkivCorporatePortal = () => {
               </div>
             )}
 
-            {/* БЛОК ОПИТУВАННЯ ТА ВІДГУКУ (ФОРМА 3 БЛОКИ) */}
             {modal[0] === 'survey' && (
               <div className="m-body">
                 <h2>Опитування користувачів</h2>
                 <p>Ваша думка надзвичайно важлива! Дайте відповіді на кілька питань, щоб опублікуровать свій відгук.</p>
-                
                 {surveySent ? (
                   <div className="fb-done" style={{ background: 'rgba(25, 100, 94, 0.1)', color: 'var(--primary-dark)', marginTop: '2rem' }}>
-                     ✅ Дякуємо! Опитування завершено. Ваш відгук успішно збережено в базі та опубліковано на сайті.
+                      ✅ Дякуємо! Опитування завершено. Ваш відгук успішно збережено в базі та опубліковано на сайті.
                   </div>
                 ) : (
                   <div className="survey-wrap">
-                    {/* Прогрес бар */}
                     <div className="survey-progress">
                       <div className={`survey-progress-bar ${surveyStep >= 1 ? 'active' : ''}`} />
                       <div className={`survey-progress-bar ${surveyStep >= 2 ? 'active' : ''}`} />
                       <div className={`survey-progress-bar ${surveyStep >= 3 ? 'active' : ''}`} />
                     </div>
 
-                    {/* БЛОК 1 */}
                     {surveyStep === 1 && (
-                      <div className="survey-block">
+                      <div className="survey-block" onFocus={() => handleFormStart('survey_form')}>
                         <div className="s-q">Скільки часу ви провели на платформі? *</div>
                         <div className="s-radio-group">
                           {['До 5 хв', 'До 10 хв', 'До 20 хв', 'Більше 20 хв'].map(opt => (
                             <label key={opt}><input type="radio" name="time" checked={surveyData.time === opt} onChange={() => setSurveyData({...surveyData, time: opt})} /> {opt}</label>
                           ))}
                         </div>
-
                         <div className="s-q">Вкажіть з якого ви пристрою: *</div>
                         <div className="s-radio-group">
                           {['Ноутбук/комп\'ютер', 'Телефон/планшет'].map(opt => (
                             <label key={opt}><input type="radio" name="device" checked={surveyData.device === opt} onChange={() => setSurveyData({...surveyData, device: opt})} /> {opt}</label>
                           ))}
                         </div>
-
                         <div className="s-q">Оцініть за шкалою від 1 до 5 враження від платформи *</div>
                         {renderStars('impression', surveyData.impression)}
-
                         <div className="s-q">Оцініть за шкалою від 1 до 5 функціонал платформи *</div>
                         {renderStars('functionality', surveyData.functionality)}
-
                         <div className="s-q">Оцініть за шкалою від 1 до 5 зручність платформи *</div>
                         {renderStars('convenience', surveyData.convenience)}
-
                         <div className="s-nav">
                           <button className="btn btn-primary" disabled={!canGoNext1} onClick={() => setSurveyStep(2)}>Наступний блок →</button>
                         </div>
                       </div>
                     )}
 
-                    {/* БЛОК 2 */}
                     {surveyStep === 2 && (
                       <div className="survey-block">
                         <div className="s-q">Чи читали ви відгуки про ЗВО інших користувачів? *</div>
                         <div className="s-radio-group">
                           {['Так', 'Ні'].map(opt => <label key={opt}><input type="radio" checked={surveyData.readOthers === opt} onChange={() => setSurveyData({...surveyData, readOthers: opt})} /> {opt}</label>)}
                         </div>
-
                         <div className="s-q">Чи були відгуки корисними для Вас? *</div>
                         <div className="s-radio-group">
                           {['Так', 'Ні'].map(opt => <label key={opt}><input type="radio" checked={surveyData.useful === opt} onChange={() => setSurveyData({...surveyData, useful: opt})} /> {opt}</label>)}
                         </div>
-
                         <div className="s-q">Чи Ви відвідаєте платформу ще раз? *</div>
                         <div className="s-radio-group">
                           {['Так', 'Ні'].map(opt => <label key={opt}><input type="radio" checked={surveyData.visitAgain === opt} onChange={() => setSurveyData({...surveyData, visitAgain: opt})} /> {opt}</label>)}
                         </div>
-
                         <div className="s-q">Чи переглядали ви відгуки пов'язані з доброчесністю ЗВО? *</div>
                         <div className="s-radio-group">
                           {['Так', 'Ні'].map(opt => <label key={opt}><input type="radio" checked={surveyData.integrityViewed === opt} onChange={() => setSurveyData({...surveyData, integrityViewed: opt})} /> {opt}</label>)}
                         </div>
-
                         <div className="s-q">Чи важливо Вам доброчесність та не корумпованість ЗВО? *</div>
                         <div className="s-radio-group">
                           {['Так', 'Ні'].map(opt => <label key={opt}><input type="radio" checked={surveyData.integrityImportant === opt} onChange={() => setSurveyData({...surveyData, integrityImportant: opt})} /> {opt}</label>)}
                         </div>
-
                         <div className="s-nav">
                           <button className="btn btn-outline" onClick={() => setSurveyStep(1)}>← Назад</button>
                           <button className="btn btn-primary" disabled={!canGoNext2} onClick={() => setSurveyStep(3)}>Наступний блок →</button>
@@ -1095,30 +1166,25 @@ const KharkivCorporatePortal = () => {
                       </div>
                     )}
 
-                    {/* БЛОК 3 */}
                     {surveyStep === 3 && (
                       <div className="survey-block">
                         <div className="s-q">Чи переглядали Ви відео про спеціальності?</div>
                         <div className="s-radio-group">
                           {['Так', 'Ні'].map(opt => <label key={opt}><input type="radio" checked={surveyData.watchedVideo === opt} onChange={() => setSurveyData({...surveyData, watchedVideo: opt})} /> {opt}</label>)}
                         </div>
-
                         {surveyData.watchedVideo === 'Так' && (
                           <>
                             <div className="s-q">Якщо так, скажіть які саме відео ви переглядали?</div>
                             <input className="s-input" placeholder="Наприклад: Кібербезпека" value={surveyData.videoName} onChange={e => setSurveyData({...surveyData, videoName: e.target.value})} />
-                            
                             <div className="s-q">Оцініть враження від 1 до 5 від відео</div>
                             {renderStars('videoRating', surveyData.videoRating)}
                           </>
                         )}
-
                         <div style={{ borderTop: '1px solid var(--border)', marginTop: '2rem', paddingTop: '1.5rem' }}>
                           <div className="s-q">Публікація відгуку на сайті</div>
                           <input className="s-input" placeholder="Ваше ім'я (можна анонімно) *" value={surveyData.userName} onChange={e => setSurveyData({...surveyData, userName: e.target.value})} />
                           <textarea className="s-textarea" rows="3" placeholder="Напишіть Ваш відгук... *" value={surveyData.reviewText} onChange={e => setSurveyData({...surveyData, reviewText: e.target.value})} />
                         </div>
-
                         <div className="s-nav">
                           <button className="btn btn-outline" onClick={() => setSurveyStep(2)}>← Назад</button>
                           <button className="btn btn-yellow" disabled={!canSubmit} onClick={submitSurvey}>Завершити та опублікувати</button>
@@ -1134,11 +1200,9 @@ const KharkivCorporatePortal = () => {
       )}
 
       <Assistant onOpen={openModal} onForm={openForm} />
-
-      {/* ДОДАНО КОМПОНЕНТ АНАЛІТИКИ ТУТ */}
       <Analytics />
     </>
   );
 };
 
-export default KharkivCorporatePortal;
+export default MainPage;
