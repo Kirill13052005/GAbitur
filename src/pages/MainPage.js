@@ -1032,7 +1032,7 @@ const MainPage = () => {
                 <div className="r-top">
                   <div className="r-ico">🏛️</div>
                   <div className="r-ut"><div className="r-name">{r.uni}</div>{r.faculty && <div className="r-fac">{r.faculty}</div>}</div>
-                  {r.demo && <span className="r-badge">Приклад</span>}
+                  
                 </div>
                 <div className="r-rating"><span className="r-stars">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span><b>{r.rating}.0</b><span className="r-date">• {new Date(r.date).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' })}</span></div>
                 <div className="r-text">«{r.text}»</div>
