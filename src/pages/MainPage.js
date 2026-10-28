@@ -24,13 +24,6 @@ const PROFS = [
   { id: 'pm', cat: 'business', icon: '👔', title: 'Project Manager', short: 'Керує створення продуктів і веде команду до результату.', full: 'Диригент команди: не пише код і не малює дизайн, але робить так, щоб все працювало. Найкраща професія для світчерів з гуманітарною або управлінською базою.', poster: U('1522071820081-009f0129c71c'), course: 'bus1', study: ['Youth Career Hub', 'Kharkiv IT Cluster'], opps: ['IT-компанії', 'R&D хаби', 'Міжнародні агенції'] }
 ];
 
-const COURSES = [
-  { id: 'tech1', cat: 'tech', icon: '💻', title: 'Software Engineering', spec: 'Інженерія / ІТ', tags: ['Алгоритми', 'ООП', 'Python'], desc: 'Логіка програмування, структури даних. Підходить абітурієнтам та світчерам без досвіду.', mods: [['Алгоритмічне мислення', '2 тижні', 'Змінні, цикли, умови.'], ['ООП', '3 тижні', 'Класи, об\'єкти.'], ['Бази даних', '2 тижні', 'Основи SQL.'], ['Проєкт', '2 тижні', 'Власне портфоліо.']] },
-  { id: 'tech2', cat: 'tech', icon: '🔐', title: 'Основи кібербезпеки', spec: 'Кібербезпека', tags: ['Мережі', 'Linux'], desc: 'Основи для майбутніх захисників даних.', mods: [['Архітектура мереж', '2 тижні', 'OSI, TCP/IP.'], ['Linux', '2 тижні', 'Права доступу, bash.'], ['WEB вразливості', '3 тижні', 'SQLi, XSS.']] },
-  { id: 'law1', cat: 'law', icon: '⚖️', title: 'Основи юриспруденції', spec: 'Право', tags: ['Закони', 'Судочинство'], desc: 'База для вступу на юридичний або розширення кругозору.', mods: [['Теорія права', '2 тижні', 'Норми та закони.'], ['Цивільне право', '3 тижні', 'Договори.'], ['Кримінальний процес', '2 тижні', 'Суд.']] },
-  { id: 'bus1', cat: 'business', icon: '🚀', title: 'Project Management', spec: 'Менеджмент', tags: ['Проєкти', 'Лідерство'], desc: 'Курс для майбутніх PM-ів. Ідеально для швидкого старту в ІТ нетехнічним фахівцям.', mods: [['Бізнес-моделі', '2 тижні', 'Canvas.'], ['Agile & Scrum', '3 тижні', 'Спринти, таски.'], ['Soft Skills', '2 тижні', 'Комунікація.']] },
-];
-
 const INITIAL_REVIEWS = [
   { name: 'Олександр Т.', uni: 'Youth Career Hub', prof: 'Software Engineering', text: 'Дуже допомогли з профорієнтацією. Консультанти сучасні, направили на правильні курси. Відгуки на цій платформі допомогли обрати саме цей кар\'єрний центр.', rating: 5, date: Date.now() - 1000000 },
   { name: 'Марія В.', uni: 'Youth Career Hub', prof: 'Право', text: 'Дуже важливо було знайти правильний шлях. Завдяки їхнім безкоштовним консультаціям обрала правильний напрямок.', rating: 5, date: Date.now() - 5000000 },
@@ -130,15 +123,6 @@ const TiltCard = ({ children, className, onClick }) => {
 function askHarik(q) {
   const s = q.toLowerCase();
   const prof = PROFS.find((p) => s.includes(p.title.toLowerCase().split(' ')[0].slice(0, 5)) || s.includes(p.id));
-  let course = COURSES.find((c) => c.tags.some((t) => s.includes(t.toLowerCase())));
-  if (!course) {
-    if (s.includes('управлін') || s.includes('держ')) course = COURSES.find(c => c.id === 'law2');
-    else if (s.includes('медиц') || s.includes('лікар')) course = COURSES.find(c => c.id === 'med1');
-    else if (s.includes('іт') || s.includes('програм')) course = COURSES.find(c => c.id === 'tech1');
-    else if (s.includes('кібер') || s.includes('безпек')) course = COURSES.find(c => c.id === 'tech2');
-    else if (s.includes('прав') || s.includes('юрист')) course = COURSES.find(c => c.id === 'law1');
-    else if (s.includes('проєкт') || s.includes('pm')) course = COURSES.find(c => c.id === 'bus1');
-  }
   if (/привіт|вітаю|hello/.test(s)) return { text: 'Привіт! Я Харік 🦝 Ментор платформи. Що шукаємо?' };
   if (/відгук|корупц/.test(s)) return { text: 'Наш пріоритет — прозорість. Користувачі залишають реальні відгуки. Який напрямок цікавить?' };
   if (/куди|звернут|центр/.test(s)) {
@@ -146,7 +130,7 @@ function askHarik(q) {
     return { text: 'Назви професію — і я підберу хаб розвитку.' };
   }
   if (prof) return { text: `Чудовий вибір! ${prof.short} Показати деталі?`, open: ['prof', prof] };
-  return { text: 'Спробуй запитати: «куди звернутись юристу?» або «курси з управління».' };
+  return { text: 'Спробуй запитати: «куди звернутись юристу?» або «як обрати IT-професію».' };
 }
 
 const BACK = { label: '⬅️ Головне меню', a: ['main'] };
@@ -272,7 +256,6 @@ const CSS = `
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); 
 }
 
-/* Кастомізація колірної палітри для Варіанта Б (Глибокий синій / Неоновий смарагд) */
 body.variant-b {
   --primary: #00B4DB;
   --primary-light: #0083B0;
@@ -328,10 +311,6 @@ body.variant-b .prof-body {
 body.variant-b .ai-input input {
   background: #0F2027;
   color: #fff;
-}
-
-body.variant-b .tl-content {
-  background: #1C2E38;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -613,7 +592,7 @@ const MainPage = () => {
     };
     setMetaTag('description', "Платформа для абітурієнтів: обирай професію за допомогою відеовізиток, читай чесні відгуки про виші та будуй кар'єру без корупції.");
     setMetaTag('og:title', "Абітурієнт+ | Чесний вибір майбутнього", true);
-    setMetaTag('og:description', "Відеовізитки професій, підготовчі курси та відгуки про університети без цензури.", true);
+    setMetaTag('og:description', "Відеовізитки професій та відгуки про університети без цензури.", true);
     setMetaTag('og:image', "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80", true);
     setMetaTag('og:type', "website", true);
 
@@ -643,6 +622,14 @@ const MainPage = () => {
     }
   }, [variant]);
 
+  // Визначення `handleFormStart` для трекінгу початку заповнення форм
+  const handleFormStart = useCallback((formName) => {
+    if (!trackedForms.current.has(formName)) {
+      trackedForms.current.add(formName);
+      trackEvent('form_start', { form_name: formName });
+    }
+  }, [trackEvent]);
+
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const forceVariant = urlParams.get('v');
@@ -657,7 +644,6 @@ const MainPage = () => {
     }
     setVariant(currentVariant);
 
-    // Додаємо клас варіанта до body для CSS-змін кольорів
     if (currentVariant === 'b') {
       document.body.classList.add('variant-b');
     } else {
@@ -764,7 +750,6 @@ const MainPage = () => {
     </div>
   );
 
-  // Оновлені тексти для Варіанта Б (Акцент на доброчесність, антикорупцію та безпеку вступу)
   const heroContent = variant === 'a' ? {
     title: "Обери професію без помилок та марних очікувань",
     subtitle: "Переглядай реальні відеовізитки спеціальностей та знаходь першу роботу чи стажування за допомогою сучасних кар'єрних хабів."
