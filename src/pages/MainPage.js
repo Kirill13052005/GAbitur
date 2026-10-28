@@ -812,7 +812,7 @@ const MainPage = () => {
   // Отримання даних з Supabase
   useEffect(() => {
     const fetchReviews = async () => {
-      const { data, error } = await supabase.from('reviews').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('reviews').select('*').not('university', 'is', null).order('created_at', { ascending: false });
       if (data && !error) {
         const dbReviews = data.map(r => ({
           name: r.user_name, uni: r.university || 'ЗВО не вказано', faculty: r.faculty || '', course: r.course || '', tags: [],
