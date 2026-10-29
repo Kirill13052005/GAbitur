@@ -11,8 +11,6 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 /* ============================================================
    A/B: ВАРІАНТ ВИЗНАЧАЄТЬСЯ ДО ПЕРШОГО РЕНДЕРУ
-   Одне посилання для всіх: новий відвідувач отримує A або B (50/50)
-   і зберігає його в localStorage. ?v=a / ?v=b — лише для ручних тестів.
    ============================================================ */
 const getVariant = () => {
   let v;
@@ -31,7 +29,6 @@ const getVariant = () => {
   } catch {
     v = Math.random() < 0.5 ? 'a' : 'b';
   }
-  // Кольори варіанта B застосовуються одразу, без «мерехтіння»
   if (typeof document !== 'undefined') document.documentElement.setAttribute('data-variant', v);
   return v;
 };
@@ -44,48 +41,25 @@ const V = 'https://www.w3schools.com/html/mov_bbb.mp4';
 const U = (id) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=600&q=60`;
 
 const PROFS = [
-  { id: 'swe', cat: 'tech', icon: '💻', title: 'Software Engineer', short: 'Створює застосунки, сайти та складні IT-системи.', full: 'Інженер-програміст проєктує, розробляє, тестує й підтримує програмне забезпечення: від додатків до систем керування. Ідеально для старту після школи або переходу з іншої сфери (світчерів).', poster: U('1555066931-4365d14bab8c'), course: 'tech1', study: ['Харківський обласний центр зайнятості', 'Харківський міський центр зайнятості', 'Youth Career Hub'], opps: ['Робота в глобальних tech-компаніях', 'Віддалена робота', 'Шлях від Trainee до Team Lead'] },
-  { id: 'cyber', cat: 'tech', icon: '🛡️', title: 'Фахівець з кібербезпеки', short: 'Захищає дані та системи від хакерських атак.', full: 'Експерт знаходить вразливості раніше за зловмисників. Попит на цю професію шалений серед банків, держави та приватного бізнесу.', poster: U('1526374965328-7f61d4dc18c5'), course: 'tech2', study: ['Харківський обласний центр зайнятості', 'Харківський міський центр зайнятості', 'Youth Career Hub'], opps: ['Банки, фінтех, blockchain', 'Кіберполіція', 'Bug Bounty програми'] },
-  { id: 'law', cat: 'law', icon: '⚖️', title: 'Адвокат / Юрист', short: 'Захищає права людей і бізнесу, супроводжує угоди.', full: 'Юрист досконало знає закони й застосовує їх для захисту клієнта. Відмінний вибір для тих, хто має аналітичний склад розуму та ораторські здібності.', poster: U('1589829085413-56de8ae18c73'), course: 'law1', study: ['Харківський обласний центр зайнятості', 'Youth Career Hub'], opps: ['Власна практика', 'Chief Legal Officer', 'Державна служба'] },
-  { id: 'pub', cat: 'law', icon: '🏛️', title: 'Публічне управління', short: 'Оптимізує роботу інституцій і громад.', full: 'Для тих, хто хоче змінювати країну: керувати містами, працювати в міністерствах, впроваджувати реформи та розвивати громади.', poster: U('1541872703-74c5e44368f9'), course: 'law2', study: ['Харківський обласний центр зайнятості', 'Харківський міський центр зайнятості'], opps: ['Міністерства', 'Місцеве самоврядування', 'Міжнародні фонди'] },
-  { id: 'doc', cat: 'med', icon: '🩺', title: 'Лікар-хірург', short: 'Рятує життя, виконує складні операції.', full: 'Одна з найвідповідальніших професій. Вимагає багаторічного навчання, стресостійкості та ідеального знання анатомії.', poster: U('1579684385127-1ef15d508118'), course: 'med1', study: ['Харківський обласний центр зайнятості', 'Youth Career Hub'], opps: ['Провідні клініки', 'Місії «Лікарі без кордонів»', 'Приватна практика'] },
-  { id: 'pm', cat: 'business', icon: '👔', title: 'Project Manager', short: 'Керує створення продуктів і веде команду до результату.', full: 'Диригент команди: не пише код і не малює дизайн, але робить так, щоб все працювало. Найкраща професія для світчерів з гуманітарною або управлінською базою.', poster: U('1522071820081-009f0129c71c'), course: 'bus1', study: ['Харківський обласний центр зайнятості', 'Харківський міський центр зайнятості', 'Youth Career Hub'], opps: ['IT-компанії', 'R&D хаби', 'Міжнародні агенції'] }
-];
-
-const COURSES = [
-  { id: 'tech1', cat: 'tech', icon: '💻', title: 'Software Engineering', spec: 'Інженерія / ІТ', tags: ['Алгоритми', 'ООП', 'Python'], desc: 'Логіка програмування, структури даних. Підходить абітурієнтам та світчерам без досвіду.', mods: [['Алгоритмічне мислення', '2 тижні', 'Змінні, цикли, умови.'], ['ООП', '3 тижні', 'Класи, об\'єкти.'], ['Бази даних', '2 тижні', 'Основи SQL.'], ['Проєкт', '2 тижні', 'Власне портфоліо.']] },
-  { id: 'tech2', cat: 'tech', icon: '🔐', title: 'Основи кібербезпеки', spec: 'Кібербезпека', tags: ['Мережі', 'Linux'], desc: 'Основи для майбутніх захисників даних.', mods: [['Архітектура мереж', '2 тижні', 'OSI, TCP/IP.'], ['Linux', '2 тижні', 'Права доступу, bash.'], ['WEB вразливості', '3 тижні', 'SQLi, XSS.']] },
-  { id: 'law1', cat: 'law', icon: '⚖️', title: 'Основи юриспруденції', spec: 'Право', tags: ['Закони', 'Судочинство'], desc: 'База для вступу на юридичний або розширення кругозору.', mods: [['Теорія права', '2 тижні', 'Норми та закони.'], ['Цивільне право', '3 тижні', 'Договори.'], ['Кримінальний процес', '2 тижні', 'Суд.']] },
-  { id: 'bus1', cat: 'business', icon: '🚀', title: 'Project Management', spec: 'Менеджмент', tags: ['Проєкти', 'Лідерство'], desc: 'Курс для майбутніх PM-ів. Ідеально для швидкого старту в ІТ нетехнічним фахівцям.', mods: [['Бізнес-моделі', '2 тижні', 'Canvas.'], ['Agile & Scrum', '3 тижні', 'Спринти, таски.'], ['Soft Skills', '2 тижні', 'Комунікація.']] },
+  { id: 'swe', cat: 'tech', icon: '💻', title: 'Software Engineer', short: 'Створює застосунки, сайти та складні IT-системи.', full: 'Інженер-програміст проєктує, розробляє, тестує й підтримує програмне забезпечення.', poster: U('1555066931-4365d14bab8c'), course: 'tech1', opps: ['Робота в глобальних tech-компаніях', 'Віддалена робота', 'Шлях від Trainee до Team Lead'] },
+  { id: 'cyber', cat: 'tech', icon: '🛡️', title: 'Фахівець з кібербезпеки', short: 'Захищає дані та системи від хакерських атак.', full: 'Експерт знаходить вразливості раніше за зловмисників.', poster: U('1526374965328-7f61d4dc18c5'), course: 'tech2', opps: ['Банки, фінтех, blockchain', 'Кіберполіція', 'Bug Bounty програми'] },
+  { id: 'law', cat: 'law', icon: '⚖️', title: 'Адвокат / Юрист', short: 'Захищає права людей і бізнесу, супроводжує угоди.', full: 'Юрист досконало знає закони й застосовує їх для захисту клієнта.', poster: U('1589829085413-56de8ae18c73'), course: 'law1', opps: ['Власна практика', 'Chief Legal Officer', 'Державна служба'] },
+  { id: 'pub', cat: 'law', icon: '🏛️', title: 'Публічне управління', short: 'Оптимізує роботу інституцій і громад.', full: 'Для тих, хто хоче змінювати країну: керувати містами, працювати в міністерствах.', poster: U('1541872703-74c5e44368f9'), course: 'law2', opps: ['Міністерства', 'Місцеве самоврядування', 'Міжнародні фонди'] },
+  { id: 'doc', cat: 'med', icon: '🩺', title: 'Лікар-хірург', short: 'Рятує життя, виконує складні операції.', full: 'Одна з найвідповідальніших професій. Вимагає багаторічного навчання.', poster: U('1579684385127-1ef15d508118'), course: 'med1', opps: ['Провідні клініки', 'Місії «Лікарі без кордонів»', 'Приватна практика'] },
+  { id: 'pm', cat: 'business', icon: '👔', title: 'Project Manager', short: 'Керує створення продуктів і веде команду до результату.', full: 'Диригент команди: не пише код і не малює дизайн, але робить так, щоб все працювало.', poster: U('1522071820081-009f0129c71c'), course: 'bus1', opps: ['IT-компанії', 'R&D хаби', 'Міжнародні агенції'] }
 ];
 
 const INITIAL_REVIEWS = [
-  { demo: true, name: 'Олександр', uni: 'Технічний університет  ', faculty: 'Факультет комп\'ютерних наук', course: '4 курс (випускник бакалаврату)', tags: ['Електронний відкритий журнал', 'Здача робіт на GitHub', 'Анонімне оцінювання викладачів'], text: 'Жодного натяку на побори, оцінювання суворо за проєктами. Всі лабораторні здаються через GitHub, а бали виставляються у відкритому електронному журналі. Викладачі самі працюють в IT-компаніях і вимагають лише реальних навичок, а не зазубреної теорії з конспекту.', rating: 5, date: Date.now() - 1000000 },
-  { demo: true, name: 'Марія', uni: 'Юридичний університет  ', faculty: 'Інститут права', course: '3 курс', tags: ['Прозора рейтингова система', 'Комісія з доброчесності', 'Судові мут-корти без преференцій'], text: 'Прозора рейтингова система, боялася корупції, але тут все чесно. Кожен бал рахується в особистому кабінеті студента. Студентська рада реально захищає права студентів, а анонімні скриньки та комісія з академічної доброчесності оперативно розбирають будь-які скарги. Хто вчиться — той має стипендію.', rating: 5, date: Date.now() - 5000000 },
-  { demo: true, name: 'Дмитро', uni: 'Політехнічний університет  ', faculty: 'Факультет інформатики та обчислювальної техніки', course: '2 курс', tags: ['Автоматична перевірка тестів', 'Відкриті силабуси'], text: 'Сесія прозора, екзамени письмові з автоматичною перевіркою. Іноді бракує практики, але жодного разу не стикався з вимаганням грошей.', rating: 4, date: Date.now() - 9000000 },
-  { demo: true, name: 'Софія', uni: 'Приватний університет  ', faculty: 'Факультет прикладних наук', course: '3 курс', tags: ['Кодекс академічної честі', 'Менторство від випускників'], text: 'Кодекс честі підписують усі — і студенти, і викладачі. Списування тут просто не прийнято, а викладачі завжди пояснюють оцінки.', rating: 5, date: Date.now() - 12000000 }
-];
-
-const TIMELINE = [
-  { step: '01', title: 'Подолання невизначеності', desc: 'Перегляд відеовізиток спеціальностей. Свідомий вибір напрямку без завищених очікувань.' },
-  { step: '02', title: 'Консультація в Центрі Зайнятості', desc: 'Звернення до центрів зайнятості Харкова. Отримання фахової допомоги у виборі напрямку та підтримки.' },
-  { step: '03', title: 'Підготовка', desc: 'Проходження базових онлайн-курсів на платформі для набуття перших навичок.' },
-  { step: '04', title: 'Працевлаштування та Розвиток', desc: 'Пошук роботи та стажування. Долучення до екосистеми кар\'єрних хабів міста.' }
-];
-
-const ECOSYSTEM = [
-  { icon: '🌐', title: 'Kharkiv IT Cluster', desc: 'Об\'єднання провідних ІТ-компаній. Можливість знайти ментора, потрапити на стажування та дізнатися про тренди.', link: 'Дізнатись більше' },
-  { icon: '🎯', title: 'Профорієнтаційні центри', desc: 'Спеціалізовані хаби міста для тестування здібностей та подолання невизначеності у виборі.', link: 'Записатись на тест' },
-  { icon: '🤝', title: 'Центри зайнятості', desc: 'Офіційні установи Харкова для підбору вакансій, курсів та кар\'єрного супроводу безкоштовно.', link: 'Долучитись' },
+  { demo: true, name: 'Олександр', uni: 'Технічний університет', faculty: 'Факультет комп\'ютерних наук', course: '4 курс', text: 'Жодного натяку на побори, оцінювання суворо за проєктами. Всі лабораторні здаються через GitHub.', rating: 5, date: Date.now() - 1000000 },
+  { demo: true, name: 'Марія', uni: 'Юридичний університет', faculty: 'Інститут права', course: '3 курс', text: 'Прозора рейтингова система, боялася корупції, але тут все чесно.', rating: 5, date: Date.now() - 5000000 }
 ];
 
 const FAQS = [
-  { q: 'Як ви перевіряєте чесність відгуків?', a: 'Ми запровадили систему верифікації. Модеруємо відгуки, щоб висвітлювати реальний стан речей щодо якості освіти та доброчесності в закладах.' },
-  { q: 'Для кого створена платформа «Абітурієнт +»?', a: 'Платформа об\'єднує школярів (подолання невизначеності), шукачів роботи та дорослих, які вирішили змінити професію (світчерів).' },
-  { q: 'Чи безкоштовні відеовізитки?', a: 'Так! Наша мета — надати кожному рівний доступ до усвідомленого вибору професії. Усі матеріали безкоштовні.' }
+  { q: 'Як ви перевіряєте чесність відгуків?', a: 'Ми запровадили систему верифікації. Модеруємо відгуки, щоб висвітлювати реальний стан речей щодо якості освіти.' },
+  { q: 'Для кого створена платформа «Абітурієнт +»?', a: 'Платформа об\'єднує школярів, шукачів роботи та дорослих, які вирішили змінити професію (світчерів).' },
+  { q: 'Чи безкоштовні відеовізитки?', a: 'Так! Наша мета — надати кожному рівний доступ до усвідомленого вибору професії.' }
 ];
 
-const PARTNERS = ['Харківський обласний центр зайнятості', 'Харківський міський центр зайнятості', 'Youth Career Hub', 'Kharkiv IT Cluster', 'Профорієнтаційні центри Харкова'];
 const SKY_HEIGHTS = [30, 50, 40, 70, 50, 80, 45, 60, 90, 55, 75, 40, 65, 35];
 
 /* ============================================================
@@ -134,7 +108,7 @@ function useTilt() {
 }
 
 /* ============================================================
-   КОМПОНЕНТИ ТА AI-ЛОГІКА
+   ШІ-АСИСТЕНТ (ПОВНІСТЮ ОНОВЛЕНИЙ)
    ============================================================ */
 const Mascot = ({ className = '' }) => (
   <div className={`mascot-sprite ${className}`} style={{ backgroundImage: `url(${mascotPhoto})` }} role="img" aria-label="Маскот Харік" />
@@ -163,32 +137,12 @@ const TiltCard = ({ children, className, onClick }) => {
   );
 };
 
-function askHarik(q) {
-  const s = q.toLowerCase();
-  const prof = PROFS.find((p) => s.includes(p.title.toLowerCase().split(' ')[0].slice(0, 5)) || s.includes(p.id));
-  if (/привіт|вітаю|hello/.test(s)) return { text: 'Привіт! Я Харік 🦝 Ментор платформи. Що шукаємо?' };
-  if (/відгук|корупц/.test(s)) return { text: 'Наш пріоритет — прозорість. Користувачі залишають реальні відгуки. Який напрямок цікавить?' };
-  if (/куди|звернут|центр/.test(s)) {
-    if (prof) return { text: `Чудовий вибір! ${prof.short} Показати деталі?`, open: ['prof', prof] };
-    return { text: 'Назви професію — і я розповім про неї детальніше.' };
-  }
-  if (prof) return { text: `Чудовий вибір! ${prof.short} Показати деталі?`, open: ['prof', prof] };
-  return { text: 'Спробуй запитати про професію, наприклад: «розкажи про юриста» або «що робить кібербезпечник».' };
-}
-
 const BACK = { label: '⬅️ Головне меню', a: ['main'] };
 const MAIN_MENU = [
-  // { label: '🎓 Знайти курс', a: ['cats'] },
   { label: '💬 Підтримка', a: ['support'] },
 ];
 
 function menuReply([t, v]) {
-  if (t === 'cats') return { text: 'Обери напрямок:', kb: [...Object.entries(CATS).filter(([k]) => k !== 'all').map(([k, l]) => ({ label: l, a: ['cat', k] })), BACK] };
-  if (t === 'cat') return { text: 'Доступні курси:', kb: [...COURSES.filter((c) => c.cat === v).map((c) => ({ label: `${c.icon} ${c.title}`, a: ['course', c.id] })), { label: '⬅️ Напрямки', a: ['cats'] }] };
-  if (t === 'course') {
-    const c = COURSES.find((x) => x.id === v);
-    return { text: `«${c.title}» — ${c.desc}`, kb: [{ label: '📚 Відкрити силабус', a: ['open', c.id] }, { label: '⬅️ Назад', a: ['cat', c.cat] }] };
-  }
   if (t === 'support') return { text: 'Чим допомогти?', kb: [{ label: '📝 Написати нам', a: ['form', 'feedback'] }, BACK] };
   return { text: 'Що потрібно?', kb: MAIN_MENU };
 }
@@ -196,7 +150,7 @@ function menuReply([t, v]) {
 const Assistant = React.memo(({ onOpen, onForm }) => {
   const [open, setOpen] = useState(false);
   const [dd, setDd] = useState(false);
-  const [msgs, setMsgs] = useState([{ from: 'bot', text: 'Привіт! Я Харік — AI-ментор. Обери, що потрібно 👇', kb: MAIN_MENU }]);
+  const [msgs, setMsgs] = useState([{ from: 'bot', text: 'Привіт! Я Харік — AI-ментор. Розкажи, які предмети тобі подобаються або ким хочеш стати? 👇', kb: MAIN_MENU }]);
   const [val, setVal] = useState('');
   const [busy, setBusy] = useState(false);
   const end = useRef(null);
@@ -213,7 +167,6 @@ const Assistant = React.memo(({ onOpen, onForm }) => {
     setDd(false);
     setMsgs((m) => [...m, { from: 'me', text: b.label }]);
     const [t, x] = b.a;
-    if (t === 'open') { onOpen('course', COURSES.find((c) => c.id === x)); return reply({ text: 'Відкрив силабус 📚', kb: [BACK] }); }
     if (t === 'form') {
       if (window.matchMedia('(max-width: 600px)').matches) setOpen(false);
       onForm(x);
@@ -222,13 +175,58 @@ const Assistant = React.memo(({ onOpen, onForm }) => {
     reply(menuReply(b.a));
   };
 
-  const send = (q) => {
+  const send = async (q) => {
     if (!q.trim() || busy) return;
-    setMsgs((m) => [...m, { from: 'me', text: q }]); setVal(''); setBusy(true);
-    setTimeout(() => {
-      const a = askHarik(q);
-      setMsgs((m) => [...m, { from: 'bot', text: a.text, act: a.open, kb: a.open ? undefined : MAIN_MENU }]); setBusy(false);
-    }, 800);
+    const userMsg = { from: 'me', text: q };
+    setMsgs((m) => [...m, userMsg]);
+    setVal('');
+    setBusy(true);
+
+    try {
+      // Формуємо історію чату (виключаємо системні кнопки)
+      const history = msgs
+        .filter(m => m.from === 'me' || m.from === 'bot')
+        .map(m => ({
+          role: m.from === 'me' ? 'user' : 'assistant',
+          content: m.text
+        })).concat({ role: 'user', content: q });
+
+      // Запит до вашого нового бекенду
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: history })
+      });
+      
+      const data = await response.json();
+      let aiText = data.reply || "Ой, я трохи замислився. Спробуй ще раз!";
+
+      // Перевіряємо чи ШІ вирішив показати відео
+      let action = null;
+      const videoMatch = aiText.match(/\[VIDEO:([a-zA-Z0-9_]+)\]/);
+      
+      if (videoMatch) {
+        const profId = videoMatch[1];
+        const prof = PROFS.find((p) => p.id === profId);
+        if (prof) {
+          action = ['prof', prof];
+        }
+        // Вирізаємо тег з тексту, щоб юзер його не бачив
+        aiText = aiText.replace(videoMatch[0], '').trim();
+      }
+
+      setMsgs((m) => [...m, { 
+        from: 'bot', 
+        text: aiText, 
+        act: action,
+        kb: action ? undefined : MAIN_MENU 
+      }]);
+
+    } catch (error) {
+      console.error('Помилка чату:', error);
+      setMsgs((m) => [...m, { from: 'bot', text: 'Ой, мої нейромережі трохи втомились 🦝 Спробуй ще раз пізніше.', kb: MAIN_MENU }]);
+    }
+    setBusy(false);
   };
 
   return (
@@ -243,7 +241,7 @@ const Assistant = React.memo(({ onOpen, onForm }) => {
           {msgs.map((m, i) => (
             <div key={i} className={`msg-wrap ${m.from}`}>
               <div className="msg">{m.text}</div>
-              {m.act && <button className="msg-act" onClick={() => onOpen(m.act[0], m.act[1])}>Переглянути деталі ↗</button>}
+              {m.act && <button className="msg-act" onClick={() => onOpen(m.act[0], m.act[1])}>Переглянути відео ↗</button>}
               {m.kb && i === msgs.length - 1 && (
                 <div className="kb">{m.kb.map((b) => <button key={b.label} onClick={() => press(b)}>{b.label}</button>)}</div>
               )}
@@ -331,7 +329,6 @@ ul, ol { list-style: none; }
 .mobile-menu { display: none; }
 .hero { min-height: 100vh; min-height: 100svh; display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 2rem; padding: 8rem 5vw 200px; position: relative; overflow: hidden; text-align: left; }
 .hero-left { position: relative; z-index: 2; }
-.hero-toggle { display: inline-flex; background: #fff; border-radius: 50px; padding: 0.4rem; box-shadow: var(--shadow-sm); margin-bottom: 2rem; animation: rv-up 0.8s var(--ease); }
 .ht-btn { padding: 1rem 2rem; font-weight: 800; font-size: 0.9rem; color: var(--text-mut); border-radius: 50px; text-transform: uppercase; transition: all 0.3s; }
 .ht-btn.active { background: var(--primary); color: #fff; box-shadow: 0 4px 15px rgba(25, 100, 94, 0.3); }
 .hero-slogan { display: inline-block; background: var(--secondary); color: var(--primary-dark); font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; font-size: 0.85rem; padding: 0.5rem 1.2rem; border-radius: 50px; margin-bottom: 1.5rem; display: table; }
@@ -350,14 +347,6 @@ ul, ol { list-style: none; }
 .skyline { position: absolute; bottom: 0; left: 0; width: 100%; height: 250px; display: flex; align-items: flex-end; gap: 4px; z-index: 1; justify-content: center; padding: 0 2vw; pointer-events: none; }
 .sk-b { background: var(--primary); opacity: 0.85; width: calc(100% / 12); border-radius: 4px 4px 0 0; position: relative; animation: buildUp 1s var(--ease-spring) forwards; transform-origin: bottom; transform: scaleY(0); }
 @keyframes buildUp { to { transform: scaleY(1); } }
-.marquee-sec { padding: 4rem 0; overflow: hidden; background: #fff; border-bottom: 1px solid var(--border); position: relative; z-index: 5; }
-.marquee-sub { text-align: center; font-size: 0.95rem; font-weight: 800; color: var(--text-mut); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 2.5rem; }
-.marquee-wrap { display: flex; width: max-content; animation: scroll 40s linear infinite; will-change: transform; }
-.marquee-wrap:hover { animation-play-state: paused; }
-.marquee-item { font-size: 1.6rem; font-weight: 900; color: var(--text-dark); padding: 0 3.5rem; display: flex; align-items: center; opacity: 0.4; transition: all 0.3s; cursor: default; white-space: nowrap; }
-.marquee-item:hover { opacity: 1; color: var(--primary); transform: scale(1.05); }
-.marquee-item::after { content: '•'; color: var(--secondary); margin-left: 3.5rem; font-size: 2rem; }
-@keyframes scroll { to { transform: translateX(-50%); } }
 .sec { padding: 8rem 0; position: relative; z-index: 5; }
 .sec-title { text-align: center; margin-bottom: 4rem; }
 .sec-title h2 { font-size: clamp(2.2rem, 4vw, 3.5rem); font-weight: 900; color: var(--primary-dark); margin-bottom: 1rem; letter-spacing: -1px; }
@@ -391,49 +380,15 @@ ul, ol { list-style: none; }
 .r-ico { width: 52px; height: 52px; border-radius: 50%; background: var(--bg-main); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
 .r-ut { flex: 1; min-width: 0; }
 .r-fac { font-size: 0.85rem; color: var(--text-mut); font-weight: 600; }
-.r-badge { font-size: 0.75rem; font-weight: 800; padding: 0.35rem 0.8rem; border-radius: 50px; background: rgba(243, 183, 47, 0.2); color: var(--primary-dark); white-space: nowrap; flex-shrink: 0; }
 .r-rating { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; flex-wrap: wrap; }
 .r-rating b { font-weight: 900; color: var(--primary-dark); }
 .r-date { font-size: 0.8rem; color: var(--text-mut); font-weight: 600; }
-.r-tags { margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 0.4rem; }
-.r-tags li { display: flex; gap: 0.6rem; font-size: 0.9rem; font-weight: 600; color: var(--text-dark); }
-.r-tags li::before { content: '✓'; color: var(--primary-light); font-weight: 900; }
 .r-author { display: flex; align-items: center; gap: 0.8rem; margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid var(--border); }
 .r-ava { width: 40px; height: 40px; border-radius: 50%; background: var(--bg-main); color: var(--primary-dark); font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .r-who { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
 .r-who b { font-weight: 800; color: var(--text-dark); }
 .r-who span { font-size: 0.8rem; color: var(--text-mut); font-weight: 600; }
 .r-role { font-size: 0.8rem; font-weight: 800; padding: 0.4rem 0.9rem; border-radius: 50px; background: var(--bg-main); color: var(--primary); flex-shrink: 0; }
-.course-card { padding: 2.5rem; display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden; background: #fff; }
-.c-head { display: flex; gap: 1.5rem; align-items: flex-start; margin-bottom: 1.5rem; transform: translateZ(30px); }
-.c-icon { font-size: 2.5rem; background: var(--bg-main); width: 75px; height: 75px; display: flex; align-items: center; justify-content: center; border-radius: 20px; border: 1px solid var(--border); color: var(--primary-dark); flex-shrink: 0; }
-.c-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.c-tags span { background: rgba(25, 100, 94, 0.08); color: var(--primary-dark); font-size: 0.75rem; font-weight: 800; padding: 0.4rem 0.8rem; border-radius: 8px; text-transform: uppercase; }
-.course-card h3 { font-size: 1.45rem; font-weight: 900; margin-bottom: 0.5rem; transform: translateZ(20px); color: var(--text-dark); }
-.course-card p { color: var(--text-mut); font-size: 0.95rem; margin-bottom: 1.5rem; flex: 1; font-weight: 500; }
-.course-card ul { background: var(--bg-main); padding: 1.5rem; border-radius: 16px; font-size: 0.95rem; border: 1px solid var(--border); }
-.course-card li { display: flex; align-items: flex-start; gap: 0.6rem; margin-bottom: 0.6rem; color: var(--text-dark); font-weight: 700; line-height: 1.4; }
-.course-card li::before { content: '✓'; color: var(--secondary); font-weight: 900; font-size: 1.1rem; }
-.course-card li.mut { color: var(--text-mut); font-weight: 600; font-style: italic; }
-.course-card li.mut::before { content: '+'; color: var(--primary); }
-.timeline { position: relative; max-width: 900px; margin: 0 auto; }
-.timeline::before { content: ''; position: absolute; top: 0; bottom: 0; left: 30px; width: 4px; background: var(--border); border-radius: 4px; }
-.tl-item { position: relative; padding-left: 90px; margin-bottom: 4rem; }
-.tl-dot { position: absolute; left: 16px; top: 0; width: 32px; height: 32px; border-radius: 50%; background: var(--bg-main); border: 4px solid var(--primary-light); box-shadow: 0 0 0 6px #fff; z-index: 2; transition: all 0.3s; }
-.tl-item:hover .tl-dot { transform: scale(1.3); background: var(--secondary); border-color: var(--secondary); }
-.tl-content { background: #fff; padding: 2.5rem; border-radius: 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); position: relative; transition: transform 0.3s; }
-.tl-item:hover .tl-content { transform: translateX(15px); border-color: var(--primary-light); }
-.tl-step { position: absolute; top: -15px; right: 2.5rem; background: var(--primary-dark); color: #fff; font-weight: 900; font-size: 1.2rem; padding: 0.5rem 1.2rem; border-radius: 12px; }
-.tl-content h3 { font-size: 1.5rem; font-weight: 900; margin-bottom: 0.5rem; color: var(--primary-dark); }
-.tl-content p { color: var(--text-mut); font-size: 1.05rem; font-weight: 600; }
-.eco-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 2.5rem; }
-.eco-card { background: #fff; padding: 3rem 2.5rem; border-radius: 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); text-align: center; transition: transform 0.3s; }
-.eco-card:hover { transform: translateY(-10px); box-shadow: var(--shadow-md); border-color: var(--primary-light); }
-.eco-icon { font-size: 4rem; margin-bottom: 1.5rem; display: inline-block; }
-.eco-card h3 { font-size: 1.4rem; font-weight: 900; color: var(--primary-dark); margin-bottom: 1rem; }
-.eco-card p { font-size: 1.05rem; color: var(--text-mut); margin-bottom: 2rem; font-weight: 500; }
-.eco-link { display: inline-block; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; padding-bottom: 5px; border-bottom: 2px solid var(--secondary); transition: color 0.3s; }
-.eco-card:hover .eco-link { color: var(--secondary); border-color: var(--primary); }
 .accordion { max-width: 850px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.2rem; }
 .acc-item { background: #fff; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: all 0.3s; cursor: pointer; box-shadow: var(--shadow-sm); }
 .acc-item:hover { border-color: var(--primary); box-shadow: var(--shadow-md); transform: translateX(5px); }
@@ -527,18 +482,6 @@ ul, ol { list-style: none; }
 .m-body ul { padding-left: 1.5rem; margin-bottom: 2rem; }
 .m-body li { margin-bottom: 0.6rem; font-weight: 700; list-style-type: disc; color: var(--text-dark); }
 .modal-content .btn { width: 100%; margin-top: 1.5rem; padding: 1.2rem; font-size: 1.1rem; }
-.m-mods { display: flex; flex-direction: column; gap: 1.2rem; counter-reset: mod; margin-top: 2rem; }
-.m-mod { background: var(--bg-main); border: 1px solid var(--border); border-radius: 16px; padding: 1.8rem; position: relative; padding-left: 4.5rem; opacity: 0; animation: slideInRight 0.5s var(--ease-spring) forwards; }
-.m-mod:nth-child(1) { animation-delay: 0.1s; }
-.m-mod:nth-child(2) { animation-delay: 0.2s; }
-.m-mod:nth-child(3) { animation-delay: 0.3s; }
-.m-mod:nth-child(4) { animation-delay: 0.4s; }
-@keyframes slideInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
-.m-mod::before { counter-increment: mod; content: '0' counter(mod); position: absolute; left: 1.5rem; top: 1.8rem; font-weight: 900; font-size: 1.2rem; color: var(--primary-light); opacity: 0.6; }
-.m-mod-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-.m-mod-head h4 { font-size: 1.2rem; font-weight: 900; color: var(--text-dark); }
-.m-mod-head span { background: rgba(25, 100, 94, 0.1); color: var(--primary-dark); font-weight: 800; font-size: 0.85rem; padding: 0.4rem 1rem; border-radius: 50px; text-transform: uppercase; }
-.m-mod p { color: var(--text-mut); font-size: 1rem; font-weight: 500; margin: 0; }
 .survey-wrap { margin-top: 1.5rem; }
 .survey-progress { display: flex; gap: 5px; margin-bottom: 2rem; }
 .survey-progress-bar { flex: 1; height: 6px; background: var(--bg-main); border-radius: 3px; transition: background 0.3s; }
@@ -559,10 +502,9 @@ ul, ol { list-style: none; }
 .s-nav .btn { width: auto; margin-top: 0; }
 @media (hover: none) {
   .tilt-card, .tilt-card:hover { transform: none !important; }
-  .prof-body, .c-head, .course-card h3, .course-card p, .course-card ul { transform: none; }
+  .prof-body, .c-head { transform: none; }
   .play-btn, .tilt-card:hover .play-btn { transform: translate(-50%, -50%) !important; }
-  .tl-item:hover .tl-content, .acc-item:hover, .review-card:hover, .eco-card:hover { transform: none; }
-  .tl-item:hover::after { height: 0; }
+  .acc-item:hover, .review-card:hover, .eco-card:hover { transform: none; }
   .btn:hover, .filter-btn:hover, .marquee-item:hover { transform: none; }
 }
 @media (max-width: 900px) {
@@ -593,11 +535,7 @@ ul, ol { list-style: none; }
   .modal-overlay { background: rgba(29, 45, 42, 0.92); padding: 0; align-items: flex-end; }
   :root[data-variant="b"] .modal-overlay { background: rgba(37, 32, 63, 0.92); }
   .modal-content { max-height: 92vh; max-height: 92dvh; border-radius: 24px 24px 0 0; }
-  .marquee-wrap { animation-duration: 30s; }
-  .rv-left, .rv-right { transform: translateY(30px); }
-  .rv { transition-duration: 0.5s; }
   .hero { padding: 6rem 1rem 120px; gap: 0; min-height: auto; }
-  .hero-toggle { flex-direction: column; padding: 0.2rem; border-radius: 20px; width: 100%; }
   .ht-btn { padding: 0.8rem 1.5rem; font-size: 0.8rem; }
   .hero h1 { font-size: 1.9rem; letter-spacing: -0.5px; }
   .hero p { font-size: 0.95rem; }
@@ -611,21 +549,10 @@ ul, ol { list-style: none; }
   .filters { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; gap: 0.6rem; margin: 0 -1rem 2rem; padding: 0.3rem 1rem 0.8rem; scrollbar-width: none; }
   .filters::-webkit-scrollbar { display: none; }
   .filter-btn { flex-shrink: 0; padding: 0.7rem 1.3rem; font-size: 0.85rem; }
-  .grid, .eco-grid { gap: 1.2rem; }
+  .grid { gap: 1.2rem; }
   .prof-thumb { height: 190px; }
-  .prof-body, .review-card, .course-card { padding: 1.5rem; }
-  .prof-body h3, .course-card h3 { font-size: 1.25rem; }
-  .c-icon { width: 60px; height: 60px; font-size: 2rem; }
-  .c-head { gap: 1rem; }
-  .timeline::before { left: 14px; }
-  .tl-item { padding-left: 52px; margin-bottom: 2.5rem; }
-  .tl-dot { left: 0; width: 28px; height: 28px; }
-  .tl-content { padding: 1.4rem; }
-  .tl-content h3 { font-size: 1.2rem; }
-  .tl-content p { font-size: 0.95rem; }
-  .tl-step { right: 1rem; top: -12px; font-size: 1rem; }
-  .eco-card { padding: 2rem 1.5rem; }
-  .eco-icon { font-size: 3rem; }
+  .prof-body, .review-card { padding: 1.5rem; }
+  .prof-body h3 { font-size: 1.25rem; }
   .cta-sec { padding: 3rem 1.2rem; border-radius: 24px; margin-top: 2rem; }
   .cta-sec p { font-size: 1rem; margin-bottom: 2rem; }
   .footer { padding: 3rem 1rem 6rem; }
@@ -636,9 +563,6 @@ ul, ol { list-style: none; }
   .m-body h2 { font-size: 1.5rem; }
   .m-body h3 { font-size: 1.1rem; margin: 1.5rem 0 0.8rem; }
   .m-body p { font-size: 1rem; }
-  .m-mod { padding: 1.2rem 1rem 1.2rem 3.2rem; }
-  .m-mod::before { left: 1rem; top: 1.2rem; }
-  .m-mod-head { flex-direction: column; align-items: flex-start; gap: 0.4rem; }
   .ai-input input, .fb-form select, .fb-form textarea, .fb-form input, .s-input, .s-textarea { font-size: 16px; }
 }
 @media (max-width: 600px) {
@@ -665,7 +589,6 @@ const MainPage = () => {
   const [modal, setModal] = useState(null);
   const [scrolled, setScrolled] = useState(false);
   const [menu, setMenu] = useState(false);
-  const [activeTab, setActiveTab] = useState('video');
   const [fb, setFb] = useState({ type: 'feedback', text: '', contact: '', sent: false });
   const barRef = useRef(null);
   const [reviewsList, setReviewsList] = useState(INITIAL_REVIEWS);
@@ -679,33 +602,13 @@ const MainPage = () => {
   });
   const [surveySent, setSurveySent] = useState(false);
 
-  // --- A/B ТЕСТУВАННЯ ТА АНАЛІТИКА ---
-  // Варіант визначається ДО першого рендеру (немає мерехтіння A -> B)
   const [variant] = useState(getVariant);
   const trackedForms = useRef(new Set());
   const trackedSections = useRef(new Set());
 
-  // 1. ІНІЦІАЛІЗАЦІЯ GA4 ТА SEO (META ТЕГИ)
+  // 1. ІНІЦІАЛІЗАЦІЯ GA4 ТА SEO
   useEffect(() => {
     document.title = "Абітурієнт+ | Усвідомлений вибір професії та чесний вступ";
-
-    const setMetaTag = (name, content, isProperty = false) => {
-      const attr = isProperty ? 'property' : 'name';
-      let meta = document.querySelector(`meta[${attr}="${name}"]`);
-      if (!meta) {
-        meta = document.createElement('meta');
-        meta.setAttribute(attr, name);
-        document.head.appendChild(meta);
-      }
-      meta.setAttribute('content', content);
-    };
-
-    setMetaTag('description', "Платформа для абітурієнтів: обирай професію за допомогою відеовізиток, читай чесні відгуки про виші та будуй кар'єру без корупції.");
-    setMetaTag('og:title', "Абітурієнт+ | Чесний вибір майбутнього", true);
-    setMetaTag('og:description', "Відеовізитки професій та відгуки про університети без цензури.", true);
-    setMetaTag('og:image', "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80", true);
-    setMetaTag('og:type', "website", true);
-
     const measurementId = 'G-CEBFEDC0W2';
     if (!document.getElementById('ga-script')) {
       const script1 = document.createElement('script');
@@ -713,7 +616,6 @@ const MainPage = () => {
       script1.async = true;
       script1.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
       document.head.appendChild(script1);
-
       const script2 = document.createElement('script');
       script2.id = 'ga-config';
       script2.innerHTML = `
@@ -726,16 +628,12 @@ const MainPage = () => {
     }
   }, []);
 
-  // Хелпер для відправки подій в GA4
   const trackEvent = useCallback((eventName, params = {}) => {
     if (typeof window !== 'undefined' && window.gtag) {
       window.gtag('event', eventName, { ...params, ab_variant: variant });
-    } else {
-      console.log(`GA4 [${eventName}]`, { ...params, ab_variant: variant });
     }
   }, [variant]);
 
-  // 2. A/B: user property + стартовий page_view
   useEffect(() => {
     document.documentElement.setAttribute('data-variant', variant);
     if (window.gtag) {
@@ -744,7 +642,6 @@ const MainPage = () => {
     }
   }, [variant]);
 
-  // 3. ВІДСТЕЖЕННЯ ГЛИБИНИ СКРОЛУ
   useEffect(() => {
     const thresholds = [25, 50, 75, 100];
     const trackedScrolls = new Set();
@@ -752,7 +649,6 @@ const MainPage = () => {
       const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
       if (docHeight <= 0) return;
       const scrollPercent = (window.scrollY / docHeight) * 100;
-
       thresholds.forEach(t => {
         if (scrollPercent >= t && !trackedScrolls.has(t)) {
           trackedScrolls.add(t);
@@ -764,44 +660,6 @@ const MainPage = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, [trackEvent]);
 
-  // 4. ВІДСТЕЖЕННЯ БЛОКУ ЦІННОСТЕЙ (values_block_view & engaged)
-  useEffect(() => {
-    const el = document.getElementById('reviews');
-    if (!el) return;
-    let timer;
-    const io = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
-        trackEvent('values_block_view');
-        timer = setTimeout(() => {
-          trackEvent('values_block_engaged');
-        }, 5000);
-      } else {
-        clearTimeout(timer);
-      }
-    }, { threshold: 0.5 });
-    io.observe(el);
-    return () => { io.disconnect(); clearTimeout(timer); };
-  }, [trackEvent]);
-
-  // 5. ВІДСТЕЖЕННЯ ПОЯВИ СЕКЦІЙ (page_view)
-  useEffect(() => {
-    const sections = ['professions', 'reviews', 'faq', 'cta'];
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting && !trackedSections.current.has(entry.target.id)) {
-          trackedSections.current.add(entry.target.id);
-          trackEvent('page_view', { page_path: `/#${entry.target.id}` });
-        }
-      });
-    }, { threshold: 0.3 });
-
-    sections.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) io.observe(el);
-    });
-    return () => io.disconnect();
-  }, [trackEvent]);
-
   const handleFormStart = (formName) => {
     if (!trackedForms.current.has(formName)) {
       trackedForms.current.add(formName);
@@ -809,7 +667,6 @@ const MainPage = () => {
     }
   };
 
-  // Отримання даних з Supabase
   useEffect(() => {
     const fetchReviews = async () => {
       const { data, error } = await supabase.from('reviews').select('*').not('university', 'is', null).order('created_at', { ascending: false });
@@ -819,14 +676,11 @@ const MainPage = () => {
           text: r.review_text, rating: r.rating, date: new Date(r.created_at).getTime()
         }));
         setReviewsList([...dbReviews, ...INITIAL_REVIEWS]);
-      } else if (error) {
-        console.error("Помилка завантаження відгуків:", error);
       }
     };
     fetchReviews();
   }, []);
 
-  // Прогрес-бар скролу
   useEffect(() => {
     let ticking = false;
     let last = false;
@@ -849,7 +703,6 @@ const MainPage = () => {
   }, [modal, menu]);
 
   const profs = useMemo(() => (cat === 'all' ? PROFS : PROFS.filter((p) => p.cat === cat)), [cat]);
-  const courses = useMemo(() => (cat === 'all' ? COURSES : COURSES.filter((c) => c.cat === cat)), [cat]);
   const skylineBlocks = useMemo(() => SKY_HEIGHTS.map((h, i) => (
     <div key={i} className="sk-b" style={{ height: `${h}%`, animationDelay: `${i * 0.05}s` }} />
   )), []);
@@ -857,8 +710,6 @@ const MainPage = () => {
   const go = useCallback((id, ctaName = null) => {
     if (ctaName) trackEvent('cta_click', { cta_name: ctaName });
     setMenu(false);
-    if (id === 'professions') setActiveTab('video');
-    if (id === 'courses') setActiveTab('courses');
     setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }), 30);
   }, [trackEvent]);
 
@@ -872,26 +723,12 @@ const MainPage = () => {
     setTimeout(() => document.getElementById('cta')?.scrollIntoView({ behavior: 'smooth' }), 30);
   }, []);
 
-  // (курси вимкнено в інтерфейсі, але функція залишена на випадок повернення)
-  const goCourse = (courseId) => {
-    const course = COURSES.find(c => c.id === courseId);
-    if (!course) return;
-    setModal(null);
-    setCat(course.cat);
-    setActiveTab('courses');
-    setTimeout(() => { go('courses', 'modal_go_course'); setTimeout(() => openModal('course', course), 800); }, 150);
-  };
-
   const canGoNext1 = surveyData.time && surveyData.device && surveyData.impression > 0 && surveyData.functionality > 0 && surveyData.convenience > 0;
   const canGoNext2 = surveyData.readOthers && surveyData.useful && surveyData.visitAgain && surveyData.integrityViewed && surveyData.integrityImportant;
   const canSubmit = surveyData.uniName.trim().length > 0 && surveyData.userName.trim().length > 0 && surveyData.reviewText.trim().length > 0;
 
   const submitSurvey = async () => {
-    trackEvent('feedback_rating', { rating: surveyData.impression });
     trackEvent('feedback_submit', { form_name: 'survey_form' });
-    trackEvent('generate_lead', { form_name: 'survey_form' });
-
-    // ВИПРАВЛЕНО: прибрано ab_variant, щоб уникнути конфлікту зі схемою Supabase
     const row = {
       user_name: surveyData.userName,
       review_text: surveyData.reviewText,
@@ -911,15 +748,13 @@ const MainPage = () => {
     };
     
     let { error } = await supabase.from('reviews').insert([{ ...row, university: surveyData.uniName, faculty: surveyData.faculty, course: surveyData.course }]);
-    // якщо колонок university/faculty/course ще немає в таблиці — зберігаємо без них
     if (error) ({ error } = await supabase.from('reviews').insert([row]));
 
     if (!error) {
       setReviewsList([{ name: surveyData.userName, uni: surveyData.uniName, faculty: surveyData.faculty, course: surveyData.course, tags: [], prof: surveyData.time, text: surveyData.reviewText, rating: surveyData.impression, date: Date.now() }, ...reviewsList]);
       setSurveySent(true);
     } else {
-      console.error('Помилка збереження в базу:', error);
-      alert('Сталася помилка при відправці відгуку. Перевірте підключення до бази.');
+      alert('Сталася помилка при відправці відгуку.');
     }
   };
 
@@ -936,7 +771,6 @@ const MainPage = () => {
     </div>
   );
 
-  // КОНТЕНТ A/B ТЕСТА (текст відрізняється, структура однакова)
   const heroContent = variant === 'a' ? {
     slogan: 'Обирай свідоме майбутнє',
     title: 'Обери професію без помилок та марних очікувань',
@@ -965,8 +799,6 @@ const MainPage = () => {
           <div className="nav-links">
             <a href="#professions" onClick={(e) => { e.preventDefault(); go('professions', 'nav_professions'); }}>Професії</a>
             <a href="#reviews" onClick={(e) => { e.preventDefault(); go('reviews', 'nav_reviews'); }}>Відгуки</a>
-            {/* <a href="#courses" onClick={(e) => { e.preventDefault(); go('courses', 'nav_courses'); }}>Курси</a> */}
-            {/* <a href="#timeline" onClick={(e) => { e.preventDefault(); go('timeline', 'nav_timeline'); }}>План дій</a> */}
             <a href="#faq" onClick={(e) => { e.preventDefault(); go('faq', 'nav_faq'); }}>FAQ</a>
           </div>
           <button className="btn btn-outline nav-fb" onClick={() => go('cta', 'nav_feedback')}>ЗВОРОТНІЙ ЗВ'ЯЗОК</button>
@@ -975,8 +807,6 @@ const MainPage = () => {
         <div className={`mobile-menu ${menu ? 'open' : ''}`}>
           <a href="#professions" onClick={(e) => { e.preventDefault(); go('professions', 'nav_mob_professions'); }}>Професії</a>
           <a href="#reviews" onClick={(e) => { e.preventDefault(); go('reviews', 'nav_mob_reviews'); }}>Відгуки</a>
-          {/* <a href="#courses" onClick={(e) => { e.preventDefault(); go('courses', 'nav_mob_courses'); }}>Курси</a> */}
-          {/* <a href="#timeline" onClick={(e) => { e.preventDefault(); go('timeline', 'nav_mob_timeline'); }}>План дій</a> */}
           <a href="#faq" onClick={(e) => { e.preventDefault(); go('faq', 'nav_mob_faq'); }}>FAQ</a>
           <a href="#cta" onClick={(e) => { e.preventDefault(); go('cta', 'nav_mob_feedback'); }}>Зворотній зв'язок</a>
         </div>
@@ -984,15 +814,9 @@ const MainPage = () => {
 
       <header id="top" className="hero">
         <div className="hero-left">
-          {/* <div className="hero-toggle">
-            <button className={`ht-btn ${activeTab === 'video' ? 'active' : ''}`} onClick={() => go('professions', 'hero_tab_video')}>ВІДЕО ПРО ПРОФЕСІЇ</button>
-            <button className={`ht-btn ${activeTab === 'courses' ? 'active' : ''}`} onClick={() => go('courses', 'hero_tab_courses')}>ПІДГОТОВЧІ КУРСИ</button>
-          </div> */}
           <div className="hero-slogan">{heroContent.slogan}</div>
-
           <h1>{heroContent.title.split(':').map((part, i) => i === 1 ? <span key={i}>{part}</span> : part)}</h1>
           <p>{heroContent.subtitle}</p>
-
           <div className="hero-actions">
             <button className="btn btn-primary" onClick={() => go(heroContent.cta1Id, 'hero_main_cta')}>{heroContent.cta1}</button>
             <button className="btn btn-outline" onClick={() => go(heroContent.cta2Id, 'hero_secondary_cta')}>{heroContent.cta2}</button>
@@ -1007,13 +831,6 @@ const MainPage = () => {
         </div>
         <div className="skyline">{skylineBlocks}</div>
       </header>
-
-      {/* <section className="marquee-sec">
-        <div className="marquee-sub">Нам довіряють кар'єрні центри та хаби міста</div>
-        <div className="marquee-wrap">
-          {[...PARTNERS, ...PARTNERS].map((p, i) => <div key={i} className="marquee-item">{p}</div>)}
-        </div>
-      </section> */}
 
       <section id="professions" className="sec container">
         <Reveal className="sec-title"><h2>Навігація Професіями</h2><p>Подолай невизначеність! Дізнайся реалії спеціальностей через відеовізитки без "рожевих окулярів" і марних очікувань.</p></Reveal>
@@ -1035,7 +852,7 @@ const MainPage = () => {
       </section>
 
       <section id="reviews" className="sec container">
-        <Reveal className="sec-title"><h2>Чесні відгуки користувачів</h2><p>Відгуки студентів про університети: чи прозоре оцінювання, чи є побори, як працює доброчесність. Обирай ЗВО на основі досвіду інших.</p></Reveal>
+        <Reveal className="sec-title"><h2>Чесні відгуки користувачів</h2><p>Відгуки студентів про університети: чи прозоре оцінювання, чи є побори, як працює доброчесність.</p></Reveal>
         <div className="grid">
           {[...reviewsList].sort((a,b) => b.date - a.date).map((r, i) => (
             <Reveal key={i} delay={Math.min(i, 3) * 0.1} dir="up">
@@ -1043,11 +860,9 @@ const MainPage = () => {
                 <div className="r-top">
                   <div className="r-ico">🏛️</div>
                   <div className="r-ut"><div className="r-name">{r.uni}</div>{r.faculty && <div className="r-fac">{r.faculty}</div>}</div>
-                  
                 </div>
                 <div className="r-rating"><span className="r-stars">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span><b>{r.rating}.0</b><span className="r-date">• {new Date(r.date).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' })}</span></div>
                 <div className="r-text">«{r.text}»</div>
-                {r.tags && r.tags.length > 0 && <ul className="r-tags">{r.tags.map(t => <li key={t}>{t}</li>)}</ul>}
                 <div className="r-author">
                   <div className="r-ava">{(r.name || '?').charAt(0).toUpperCase()}</div>
                   <div className="r-who"><b>{r.name}</b>{r.course && <span>{r.course}</span>}</div>
@@ -1070,41 +885,6 @@ const MainPage = () => {
         </Reveal>
       </section>
 
-      {/* <section id="courses" className="sec container">
-        <Reveal className="sec-title"><h2>Підготовчі Курси</h2><p>Від підготовки до вступу до старту в новій професії з нуля. Практичні знання для легкого старту.</p></Reveal>
-        <div className="grid">
-          {courses.map((c, i) => (
-            <Reveal key={c.id} delay={Math.min(i, 3) * 0.08} dir="up">
-              <TiltCard className="course-card" onClick={() => openModal('course', c)}>
-                <div className="c-head"><div className="c-icon">{c.icon}</div><div><div className="c-tags">{c.tags.map(t => <span key={t}>{t}</span>)}</div></div></div>
-                <h3>{c.title}</h3><p>{c.desc}</p>
-                <ul>{c.mods.slice(0, 3).map(m => <li key={m[0]}>{m[0]}</li>)}{c.mods.length > 3 && <li className="mut">ще {c.mods.length - 3} модулі</li>}</ul>
-              </TiltCard>
-            </Reveal>
-          ))}
-        </div>
-      </section> */}
-
-      {/* <section id="timeline" className="sec container">
-        <Reveal className="sec-title"><h2>Твій План Дій</h2><p>Покроковий шлях від подолання сумнівів до успішного старту в прозорому середовищі.</p></Reveal>
-        <div className="timeline">
-          {TIMELINE.map((item, i) => (
-            <Reveal key={i} delay={0.05} dir={i % 2 === 0 ? 'left' : 'right'}>
-              <div className="tl-item"><div className="tl-dot" /><div className="tl-content"><span className="tl-step">{item.step}</span><h3>{item.title}</h3><p>{item.desc}</p></div></div>
-            </Reveal>
-          ))}
-        </div>
-      </section> */}
-
-      {/* <section id="ecosystem" className="sec container">
-        <Reveal className="sec-title"><h2>Екосистема Розвитку Харкова</h2><p>Окрім навчання, місто пропонує потужну інфраструктуру: профорієнтаційні центри, ІТ-кластери та кар'єрні хаби.</p></Reveal>
-        <div className="eco-grid">
-          {ECOSYSTEM.map((eco, i) => (
-            <Reveal key={i} delay={Math.min(i, 3) * 0.08} dir="up"><div className="eco-card"><div className="eco-icon">{eco.icon}</div><h3>{eco.title}</h3><p>{eco.desc}</p><a href="#top" className="eco-link">{eco.link}</a></div></Reveal>
-          ))}
-        </div>
-      </section> */}
-
       <section id="faq" className="sec container">
         <Reveal className="sec-title"><h2>Часті Питання</h2><p>Все, що потрібно знати про відгуки та платформу.</p></Reveal>
         <Reveal delay={0.1}><Accordion faqs={FAQS} /></Reveal>
@@ -1123,7 +903,6 @@ const MainPage = () => {
                   <select value={fb.type} onFocus={() => handleFormStart('footer_feedback')} onChange={(e) => setFb({ ...fb, type: e.target.value })}>
                     <option value="feedback">Питання / зворотній зв'язок</option>
                     <option value="corruption">Анонімний відгук про корупцію в ЗВО</option>
-                    {/* <option value="center">Відгук про центр зайнятості</option> */}
                   </select>
                   <textarea rows="4" placeholder="Твоє повідомлення…" value={fb.text} onFocus={() => handleFormStart('footer_feedback')} onChange={(e) => setFb({ ...fb, text: e.target.value })} />
                   {fb.type !== 'corruption' && <input placeholder="Email або Telegram (необов'язково)" onFocus={() => handleFormStart('footer_feedback')} value={fb.contact} onChange={(e) => setFb({ ...fb, contact: e.target.value })} />}
@@ -1147,30 +926,18 @@ const MainPage = () => {
                 <video controls playsInline preload="metadata" poster={modal[1].poster} className="m-video" autoPlay muted loop><source src={V} type="video/mp4" /></video>
                 <div className="m-body">
                   <h2>{modal[1].icon} {modal[1].title}</h2><p>{modal[1].full}</p>
-                  {/* <h3>🏢 Де отримати підтримку (Центри зайнятості)</h3><ul>{modal[1].study.map(s => <li key={s}>{s}</li>)}</ul> */}
                   <h3>🚀 Кар’єрні можливості</h3><ul>{modal[1].opps.map(s => <li key={s}>{s}</li>)}</ul>
-                  {/* {modal[1].course && <button className="btn btn-primary" onClick={() => goCourse(modal[1].course)}>Почати підготовчий курс</button>} */}
                   <button className="btn btn-primary" onClick={() => setModal(null)}>Зрозуміло</button>
                 </div>
               </>
             )}
 
-            {modal[0] === 'course' && (
-              <div className="m-body">
-                <h2>{modal[1].icon} {modal[1].title}</h2><p style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--primary)' }}>{modal[1].spec}</p><p>{modal[1].desc}</p>
-                <h3>Силабус (Програма курсу)</h3>
-                <div className="m-mods">{modal[1].mods.map(([t, d, x]) => <div className="m-mod" key={t}><div className="m-mod-head"><h4>{t}</h4><span>{d}</span></div><p>{x}</p></div>)}</div>
-                <button className="btn btn-primary" onClick={() => setModal(null)}>Зрозуміло</button>
-              </div>
-            )}
-
             {modal[0] === 'survey' && (
               <div className="m-body">
                 <h2>Опитування користувачів</h2>
-                <p>Ваша думка надзвичайно важлива! Дайте відповіді на кілька питань, щоб опублікувати свій відгук.</p>
                 {surveySent ? (
                   <div className="fb-done" style={{ background: 'rgba(25, 100, 94, 0.1)', color: 'var(--primary-dark)', marginTop: '2rem' }}>
-                      ✅ Дякуємо! Опитування завершено. Ваш відгук успішно збережено в базі та опубліковано на сайті.
+                      ✅ Дякуємо! Опитування завершено. Ваш відгук успішно збережено.
                   </div>
                 ) : (
                   <div className="survey-wrap">
@@ -1194,15 +961,13 @@ const MainPage = () => {
                             <label key={opt}><input type="radio" name="device" checked={surveyData.device === opt} onChange={() => setSurveyData({...surveyData, device: opt})} /> {opt}</label>
                           ))}
                         </div>
-                        <div className="s-q">Оцініть за шкалою від 1 до 5 враження від платформи *</div>
+                        <div className="s-q">Оцініть враження від платформи *</div>
                         {renderStars('impression', surveyData.impression)}
-                        <div className="s-q">Оцініть за шкалою від 1 до 5 функціонал платформи *</div>
+                        <div className="s-q">Оцініть функціонал платформи *</div>
                         {renderStars('functionality', surveyData.functionality)}
-                        <div className="s-q">Оцініть за шкалою від 1 до 5 зручність платформи *</div>
+                        <div className="s-q">Оцініть зручність платформи *</div>
                         {renderStars('convenience', surveyData.convenience)}
-                        <div className="s-nav">
-                          <button className="btn btn-primary" disabled={!canGoNext1} onClick={() => setSurveyStep(2)}>Наступний блок →</button>
-                        </div>
+                        <div className="s-nav"><button className="btn btn-primary" disabled={!canGoNext1} onClick={() => setSurveyStep(2)}>Наступний блок →</button></div>
                       </div>
                     )}
 
@@ -1245,7 +1010,7 @@ const MainPage = () => {
                           <>
                             <div className="s-q">Якщо так, скажіть які саме відео ви переглядали?</div>
                             <input className="s-input" placeholder="Наприклад: Кібербезпека" value={surveyData.videoName} onChange={e => setSurveyData({...surveyData, videoName: e.target.value})} />
-                            <div className="s-q">Оцініть враження від 1 до 5 від відео</div>
+                            <div className="s-q">Оцініть враження від відео</div>
                             {renderStars('videoRating', surveyData.videoRating)}
                           </>
                         )}
@@ -1255,7 +1020,7 @@ const MainPage = () => {
                           <input className="s-input" placeholder="Факультет / інститут" value={surveyData.faculty} onChange={e => setSurveyData({...surveyData, faculty: e.target.value})} />
                           <input className="s-input" placeholder="Курс (наприклад: 3 курс)" value={surveyData.course} onChange={e => setSurveyData({...surveyData, course: e.target.value})} />
                           <input className="s-input" placeholder="Ваше ім'я (можна анонімно) *" value={surveyData.userName} onChange={e => setSurveyData({...surveyData, userName: e.target.value})} />
-                          <textarea className="s-textarea" rows="3" placeholder="Розкажіть про оцінювання, викладачів, доброчесність у вашому ЗВО... *" value={surveyData.reviewText} onChange={e => setSurveyData({...surveyData, reviewText: e.target.value})} />
+                          <textarea className="s-textarea" rows="3" placeholder="Розкажіть про оцінювання, викладачів... *" value={surveyData.reviewText} onChange={e => setSurveyData({...surveyData, reviewText: e.target.value})} />
                         </div>
                         <div className="s-nav">
                           <button className="btn btn-outline" onClick={() => setSurveyStep(2)}>← Назад</button>
@@ -1270,7 +1035,6 @@ const MainPage = () => {
           </div>
         </div>
       )}
-
       <Assistant onOpen={openModal} onForm={openForm} />
       <Analytics />
     </>
