@@ -293,7 +293,7 @@ const CSS = `
 :root[data-variant="b"] .cta-sec { box-shadow: 0 30px 60px rgba(42, 31, 107, 0.4); }
 :root[data-variant="b"] .sk-b { opacity: 0.8; }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+- { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Montserrat', sans-serif; background: var(--bg-main); color: var(--text-dark); line-height: 1.6; overflow-x: hidden; overflow-x: clip; -webkit-tap-highlight-color: transparent; }
 button { font-family: inherit; cursor: pointer; border: 0; background: none; color: inherit; outline: none; }
 a { text-decoration: none; color: inherit; }
@@ -891,14 +891,25 @@ const MainPage = () => {
     trackEvent('feedback_submit', { form_name: 'survey_form' });
     trackEvent('generate_lead', { form_name: 'survey_form' });
 
+    // ВИПРАВЛЕНО: прибрано ab_variant, щоб уникнути конфлікту зі схемою Supabase
     const row = {
-      user_name: surveyData.userName, review_text: surveyData.reviewText, rating: surveyData.impression,
-      time_spent: surveyData.time, device: surveyData.device, functionality_rating: surveyData.functionality,
-      convenience_rating: surveyData.convenience, read_others: surveyData.readOthers, useful: surveyData.useful,
-      visit_again: surveyData.visitAgain, integrity_viewed: surveyData.integrityViewed, integrity_important: surveyData.integrityImportant,
-      watched_video: surveyData.watchedVideo, video_name: surveyData.videoName, video_rating: surveyData.videoRating,
-      ab_variant: variant
+      user_name: surveyData.userName,
+      review_text: surveyData.reviewText,
+      rating: surveyData.impression,
+      time_spent: surveyData.time,
+      device: surveyData.device,
+      functionality_rating: surveyData.functionality,
+      convenience_rating: surveyData.convenience,
+      read_others: surveyData.readOthers,
+      useful: surveyData.useful,
+      visit_again: surveyData.visitAgain,
+      integrity_viewed: surveyData.integrityViewed,
+      integrity_important: surveyData.integrityImportant,
+      watched_video: surveyData.watchedVideo,
+      video_name: surveyData.videoName,
+      video_rating: surveyData.videoRating
     };
+    
     let { error } = await supabase.from('reviews').insert([{ ...row, university: surveyData.uniName, faculty: surveyData.faculty, course: surveyData.course }]);
     // якщо колонок university/faculty/course ще немає в таблиці — зберігаємо без них
     if (error) ({ error } = await supabase.from('reviews').insert([row]));
