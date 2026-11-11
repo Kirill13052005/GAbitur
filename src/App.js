@@ -2,7 +2,7 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom'; // Используем Routes вместо Switch
 import Home from './pages/MainPage';
-import AdminPanel from './pages/adminpanel';
+import AdminPanel from './pages/adminpanel.js';
 
 const App = () => {
   return (
