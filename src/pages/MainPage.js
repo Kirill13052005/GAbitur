@@ -1,19 +1,32 @@
-/* eslint-disable no-unused-vars */
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { Suspense, useState, useEffect, useRef, useMemo, useCallback } from 'react';
+// ⚠️ Рекомендація: конвертуйте mascot-photo.png у WebP (≈ −80 KiB) і змініть імпорт на './mascot-photo.webp'
 import mascotPhoto from '../assets/mascot-photo.png';
-import { createClient } from '@supabase/supabase-js';
-import { Analytics } from '@vercel/analytics/react';
-
-// Инициализация Supabase
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://kecltjjcdobidhigmhfd.supabase.co';
-const supabaseKey = process.env.REACT_APP_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_9mjyl5UWYQThAxr5gpO28g_Onhjp29N';
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 /* ============================================================
-   A/B: ВАРІАНТ ВИЗНАЧАЄТЬСЯ ДО ПЕРШОГО РЕНДЕРУ
-   Одне посилання для всіх: новий відвідувач отримує A або B (50/50)
-   і зберігає його в localStorage. ?v=a / ?v=b — лише для ручних тестів.
+   ЛІНИВІ ЗАВАНТАЖЕННЯ (зменшують початковий JS-бандл)
    ============================================================ */
+// @vercel/analytics вантажиться окремим чанком, поза критичним шляхом
+const Analytics = React.lazy(() => import('@vercel/analytics/react').then((m) => ({ default: m.Analytics })));
+
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://kecltjjcdobidhigmhfd.supabase.co';
+const supabaseKey = process.env.REACT_APP_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_9mjyl5UWYQThAxr5gpO28g_Onhjp29N';
+
+// Supabase (GoTrueClient тощо) — важка бібліотека: підключаємо динамічно, лише коли потрібні дані
+let supabasePromise = null;
+const getSupabase = () => {
+  if (!supabasePromise) {
+    supabasePromise = import('@supabase/supabase-js').then((m) => m.createClient(supabaseUrl, supabaseKey));
+  }
+  return supabasePromise;
+};
+
+// Виконати, коли браузер вільний
+const idle = (fn, timeout = 2000) => {
+  if (typeof window === 'undefined') return;
+  if ('requestIdleCallback' in window) window.requestIdleCallback(fn, { timeout });
+  else setTimeout(fn, 200);
+};
+
 const getVariant = () => {
   let v;
   try {
@@ -44,39 +57,26 @@ const V = 'https://www.w3schools.com/html/mov_bbb.mp4';
 const U = (id) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=600&q=60`;
 
 const PROFS = [
-  { id: 'swe', cat: 'tech', icon: '💻', title: 'Software Engineer', short: 'Створює застосунки, сайти та складні IT-системи.', full: 'Інженер-програміст проєктує, розробляє, тестує й підтримує програмне забезпечення: від додатків до систем керування. Ідеально для старту після школи або переходу з іншої сфери (світчерів).', poster: U('1555066931-4365d14bab8c'), course: 'tech1', study: ['Харківський обласний центр зайнятості', 'Харківський міський центр зайнятості', 'Youth Career Hub'], opps: ['Робота в глобальних tech-компаніях', 'Віддалена робота', 'Шлях від Trainee до Team Lead'] },
-  { id: 'cyber', cat: 'tech', icon: '🛡️', title: 'Фахівець з кібербезпеки', short: 'Захищає дані та системи від хакерських атак.', full: 'Експерт знаходить вразливості раніше за зловмисників. Попит на цю професію шалений серед банків, держави та приватного бізнесу.', poster: U('1526374965328-7f61d4dc18c5'), course: 'tech2', study: ['Харківський обласний центр зайнятості', 'Харківський міський центр зайнятості', 'Youth Career Hub'], opps: ['Банки, фінтех, blockchain', 'Кіберполіція', 'Bug Bounty програми'] },
-  { id: 'law', cat: 'law', icon: '⚖️', title: 'Адвокат / Юрист', short: 'Захищає права людей і бізнесу, супроводжує угоди.', full: 'Юрист досконало знає закони й застосовує їх для захисту клієнта. Відмінний вибір для тих, хто має аналітичний склад розуму та ораторські здібності.', poster: U('1589829085413-56de8ae18c73'), course: 'law1', study: ['Харківський обласний центр зайнятості', 'Youth Career Hub'], opps: ['Власна практика', 'Chief Legal Officer', 'Державна служба'] },
-  { id: 'pub', cat: 'law', icon: '🏛️', title: 'Публічне управління', short: 'Оптимізує роботу інституцій і громад.', full: 'Для тих, хто хоче змінювати країну: керувати містами, працювати в міністерствах, впроваджувати реформи та розвивати громади.', poster: U('1541872703-74c5e44368f9'), course: 'law2', study: ['Харківський обласний центр зайнятості', 'Харківський міський центр зайнятості'], opps: ['Міністерства', 'Місцеве самоврядування', 'Міжнародні фонди'] },
-  { id: 'doc', cat: 'med', icon: '🩺', title: 'Лікар-хірург', short: 'Рятує життя, виконує складні операції.', full: 'Одна з найвідповідальніших професій. Вимагає багаторічного навчання, стресостійкості та ідеального знання анатомії.', poster: U('1579684385127-1ef15d508118'), course: 'med1', study: ['Харківський обласний центр зайнятості', 'Youth Career Hub'], opps: ['Провідні клініки', 'Місії «Лікарі без кордонів»', 'Приватна практика'] },
-  { id: 'pm', cat: 'business', icon: '👔', title: 'Project Manager', short: 'Керує створення продуктів і веде команду до результату.', full: 'Диригент команди: не пише код і не малює дизайн, але робить так, щоб все працювало. Найкраща професія для світчерів з гуманітарною або управлінською базою.', poster: U('1522071820081-009f0129c71c'), course: 'bus1', study: ['Харківський обласний центр зайнятості', 'Харківський міський центр зайнятості', 'Youth Career Hub'], opps: ['IT-компанії', 'R&D хаби', 'Міжнародні агенції'] }
+  { id: 'swe', cat: 'tech', icon: '💻', title: 'Software Engineer', short: 'Створює застосунки, сайти та складні IT-системи.', full: 'Інженер-програміст проєктує, розробляє, тестує й підтримує програмне забезпечення: від додатків до систем керування. Ідеально для старту після школи або переходу з іншої сфери (світчерів).', poster: U('1555066931-4365d14bab8c'), course: 'tech1', opps: ['Робота в глобальних tech-компаніях', 'Віддалена робота', 'Шлях від Trainee до Team Lead'] },
+  { id: 'cyber', cat: 'tech', icon: '🛡️', title: 'Фахівець з кібербезпеки', short: 'Захищає дані та системи від хакерських атак.', full: 'Експерт знаходить вразливості раніше за зловмисників. Попит на цю професію шалений серед банків, держави та приватного бізнесу.', poster: U('1526374965328-7f61d4dc18c5'), course: 'tech2', opps: ['Банки, фінтех, blockchain', 'Кіберполіція', 'Bug Bounty програми'] },
+  { id: 'law', cat: 'law', icon: '⚖️', title: 'Адвокат / Юрист', short: 'Захищає права людей і бізнесу, супроводжує угоди.', full: 'Юрист досконало знає закони й застосовує їх для захисту клієнта. Відмінний вибір для тих, хто має аналітичний склад розуму та ораторські здібності.', poster: U('1589829085413-56de8ae18c73'), course: 'law1', opps: ['Власна практика', 'Chief Legal Officer', 'Державна служба'] },
+  { id: 'pub', cat: 'law', icon: '🏛️', title: 'Публічне управління', short: 'Оптимізує роботу інституцій і громад.', full: 'Для тих, хто хоче змінювати країну: керувати містами, працювати в міністерствах, впроваджувати реформи та розвивати громади.', poster: U('1541872703-74c5e44368f9'), course: 'law2', opps: ['Міністерства', 'Місцеве самоврядування', 'Міжнародні фонди'] },
+  { id: 'doc', cat: 'med', icon: '🩺', title: 'Лікар-хірург', short: 'Рятує життя, виконує складні операції.', full: 'Одна з найвідповідальніших професій. Вимагає багаторічного навчання, стресостійкості та ідеального знання анатомії.', poster: U('1579684385127-1ef15d508118'), course: 'med1', opps: ['Провідні клініки', 'Місії «Лікарі без кордонів»', 'Приватна практика'] },
+  { id: 'pm', cat: 'business', icon: '👔', title: 'Project Manager', short: 'Керує створенням продуктів і веде команду до результату.', full: 'Диригент команди: не пише код і не малює дизайн, але робить так, щоб все працювало. Найкраща професія для світчерів з гуманітарною або управлінською базою.', poster: U('1522071820081-009f0129c71c'), course: 'bus1', opps: ['IT-компанії', 'R&D хаби', 'Міжнародні агенції'] }
 ];
 
 const COURSES = [
-  { id: 'tech1', cat: 'tech', icon: '💻', title: 'Software Engineering', spec: 'Інженерія / ІТ', tags: ['Алгоритми', 'ООП', 'Python'], desc: 'Логіка програмування, структури даних. Підходить абітурієнтам та світчерам без досвіду.', mods: [['Алгоритмічне мислення', '2 тижні', 'Змінні, цикли, умови.'], ['ООП', '3 тижні', 'Класи, об\'єкти.'], ['Бази даних', '2 тижні', 'Основи SQL.'], ['Проєкт', '2 тижні', 'Власне портфоліо.']] },
-  { id: 'tech2', cat: 'tech', icon: '🔐', title: 'Основи кібербезпеки', spec: 'Кібербезпека', tags: ['Мережі', 'Linux'], desc: 'Основи для майбутніх захисників даних.', mods: [['Архітектура мереж', '2 тижні', 'OSI, TCP/IP.'], ['Linux', '2 тижні', 'Права доступу, bash.'], ['WEB вразливості', '3 тижні', 'SQLi, XSS.']] },
-  { id: 'law1', cat: 'law', icon: '⚖️', title: 'Основи юриспруденції', spec: 'Право', tags: ['Закони', 'Судочинство'], desc: 'База для вступу на юридичний або розширення кругозору.', mods: [['Теорія права', '2 тижні', 'Норми та закони.'], ['Цивільне право', '3 тижні', 'Договори.'], ['Кримінальний процес', '2 тижні', 'Суд.']] },
-  { id: 'bus1', cat: 'business', icon: '🚀', title: 'Project Management', spec: 'Менеджмент', tags: ['Проєкти', 'Лідерство'], desc: 'Курс для майбутніх PM-ів. Ідеально для швидкого старту в ІТ нетехнічним фахівцям.', mods: [['Бізнес-моделі', '2 тижні', 'Canvas.'], ['Agile & Scrum', '3 тижні', 'Спринти, таски.'], ['Soft Skills', '2 тижні', 'Комунікація.']] },
+  { id: 'tech1', cat: 'tech', icon: '💻', title: 'Software Engineering', spec: 'Інженерія / ІТ', desc: 'Логіка програмування, структури даних. Підходить абітурієнтам та світчерам без досвіду.', mods: [['Алгоритмічне мислення', '2 тижні', 'Змінні, цикли, умови.'], ['ООП', '3 тижні', 'Класи, об\'єкти.'], ['Бази даних', '2 тижні', 'Основи SQL.'], ['Проєкт', '2 тижні', 'Власне портфоліо.']] },
+  { id: 'tech2', cat: 'tech', icon: '🔐', title: 'Основи кібербезпеки', spec: 'Кібербезпека', desc: 'Основи для майбутніх захисників даних.', mods: [['Архітектура мереж', '2 тижні', 'OSI, TCP/IP.'], ['Linux', '2 тижні', 'Права доступу, bash.'], ['WEB вразливості', '3 тижні', 'SQLi, XSS.']] },
+  { id: 'law1', cat: 'law', icon: '⚖️', title: 'Основи юриспруденції', spec: 'Право', desc: 'База для вступу на юридичний або розширення кругозору.', mods: [['Теорія права', '2 тижні', 'Норми та закони.'], ['Цивільне право', '3 тижні', 'Договори.'], ['Кримінальний процес', '2 тижні', 'Суд.']] },
+  { id: 'bus1', cat: 'business', icon: '🚀', title: 'Project Management', spec: 'Менеджмент', desc: 'Курс для майбутніх PM-ів. Ідеально для швидкого старту в ІТ нетехнічним фахівцям.', mods: [['Бізнес-моделі', '2 тижні', 'Canvas.'], ['Agile & Scrum', '3 тижні', 'Спринти, таски.'], ['Soft Skills', '2 тижні', 'Комунікація.']] },
 ];
 
 const INITIAL_REVIEWS = [
-  { demo: true, name: 'Олександр', uni: 'Технічний університет  ', faculty: 'Факультет комп\'ютерних наук', course: '4 курс (випускник бакалаврату)', tags: ['Електронний відкритий журнал', 'Здача робіт на GitHub', 'Анонімне оцінювання викладачів'], text: 'Жодного натяку на побори, оцінювання суворо за проєктами. Всі лабораторні здаються через GitHub, а бали виставляються у відкритому електронному журналі. Викладачі самі працюють в IT-компаніях і вимагають лише реальних навичок, а не зазубреної теорії з конспекту.', rating: 5, date: Date.now() - 1000000 },
-  { demo: true, name: 'Марія', uni: 'Юридичний університет  ', faculty: 'Інститут права', course: '3 курс', tags: ['Прозора рейтингова система', 'Комісія з доброчесності', 'Судові мут-корти без преференцій'], text: 'Прозора рейтингова система, боялася корупції, але тут все чесно. Кожен бал рахується в особистому кабінеті студента. Студентська рада реально захищає права студентів, а анонімні скриньки та комісія з академічної доброчесності оперативно розбирають будь-які скарги. Хто вчиться — той має стипендію.', rating: 5, date: Date.now() - 5000000 },
-  { demo: true, name: 'Дмитро', uni: 'Політехнічний університет  ', faculty: 'Факультет інформатики та обчислювальної техніки', course: '2 курс', tags: ['Автоматична перевірка тестів', 'Відкриті силабуси'], text: 'Сесія прозора, екзамени письмові з автоматичною перевіркою. Іноді бракує практики, але жодного разу не стикався з вимаганням грошей.', rating: 4, date: Date.now() - 9000000 },
-  { demo: true, name: 'Софія', uni: 'Приватний університет  ', faculty: 'Факультет прикладних наук', course: '3 курс', tags: ['Кодекс академічної честі', 'Менторство від випускників'], text: 'Кодекс честі підписують усі — і студенти, і викладачі. Списування тут просто не прийнято, а викладачі завжди пояснюють оцінки.', rating: 5, date: Date.now() - 12000000 }
-];
-
-const TIMELINE = [
-  { step: '01', title: 'Подолання невизначеності', desc: 'Перегляд відеовізиток спеціальностей. Свідомий вибір напрямку без завищених очікувань.' },
-  { step: '02', title: 'Консультація в Центрі Зайнятості', desc: 'Звернення до центрів зайнятості Харкова. Отримання фахової допомоги у виборі напрямку та підтримки.' },
-  { step: '03', title: 'Підготовка', desc: 'Проходження базових онлайн-курсів на платформі для набуття перших навичок.' },
-  { step: '04', title: 'Працевлаштування та Розвиток', desc: 'Пошук роботи та стажування. Долучення до екосистеми кар\'єрних хабів міста.' }
-];
-
-const ECOSYSTEM = [
-  { icon: '🌐', title: 'Kharkiv IT Cluster', desc: 'Об\'єднання провідних ІТ-компаній. Можливість знайти ментора, потрапити на стажування та дізнатися про тренди.', link: 'Дізнатись більше' },
-  { icon: '🎯', title: 'Профорієнтаційні центри', desc: 'Спеціалізовані хаби міста для тестування здібностей та подолання невизначеності у виборі.', link: 'Записатись на тест' },
-  { icon: '🤝', title: 'Центри зайнятості', desc: 'Офіційні установи Харкова для підбору вакансій, курсів та кар\'єрного супроводу безкоштовно.', link: 'Долучитись' },
+  { name: 'Олександр', uni: 'Технічний університет', faculty: 'Факультет комп\'ютерних наук', course: '4 курс (випускник бакалаврату)', tags: ['Електронний відкритий журнал', 'Здача робіт на GitHub', 'Анонімне оцінювання викладачів'], text: 'Жодного натяку на побори, оцінювання суворо за проєктами. Всі лабораторні здаються через GitHub, а бали виставляються у відкритому електронному журналі. Викладачі самі працюють в IT-компаніях і вимагають лише реальних навичок, а не зазубреної теорії з конспекту.', rating: 5, date: Date.now() - 1000000 },
+  { name: 'Марія', uni: 'Юридичний університет', faculty: 'Інститут права', course: '3 курс', tags: ['Прозора рейтингова система', 'Комісія з доброчесності', 'Судові мут-корти без преференцій'], text: 'Прозора рейтингова система, боялася корупції, але тут все чесно. Кожен бал рахується в особистому кабінеті студента. Студентська рада реально захищає права студентів, а анонімні скриньки та комісія з академічної доброчесності оперативно розбирають будь-які скарги. Хто вчиться — той має стипендію.', rating: 5, date: Date.now() - 5000000 },
+  { name: 'Дмитро', uni: 'Політехнічний університет', faculty: 'Факультет інформатики та обчислювальної техніки', course: '2 курс', tags: ['Автоматична перевірка тестів', 'Відкриті силабуси'], text: 'Сесія прозора, екзамени письмові з автоматичною перевіркою. Іноді бракує практики, але жодного разу не стикався з вимаганням грошей.', rating: 4, date: Date.now() - 9000000 },
+  { name: 'Софія', uni: 'Приватний університет', faculty: 'Факультет прикладних наук', course: '3 курс', tags: ['Кодекс академічної честі', 'Менторство від випускників'], text: 'Кодекс честі підписують усі — і студенти, і викладачі. Списування тут просто не прийнято, а викладачі завжди пояснюють оцінки.', rating: 5, date: Date.now() - 12000000 }
 ];
 
 const FAQS = [
@@ -85,26 +85,41 @@ const FAQS = [
   { q: 'Чи безкоштовні відеовізитки?', a: 'Так! Наша мета — надати кожному рівний доступ до усвідомленого вибору професії. Усі матеріали безкоштовні.' }
 ];
 
-const PARTNERS = ['Харківський обласний центр зайнятості', 'Харківський міський центр зайнятості', 'Youth Career Hub', 'Kharkiv IT Cluster', 'Профорієнтаційні центри Харкова'];
 const SKY_HEIGHTS = [30, 50, 40, 70, 50, 80, 45, 60, 90, 55, 75, 40, 65, 35];
+const GA_ID = 'G-CEBFEDC0W2';
+const FONT_URL = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;800;900&display=swap';
+
+const SURVEY_INITIAL = {
+  time: '', device: '', impression: 0, functionality: 0, convenience: 0,
+  readOthers: '', useful: '', visitAgain: '', integrityViewed: '', integrityImportant: '',
+  watchedVideo: '', videoName: '', videoRating: 0, userName: '', reviewText: '', uniName: '', faculty: '', course: ''
+};
 
 /* ============================================================
    ХУКИ ТА УТИЛІТИ
    ============================================================ */
-function useReveal(threshold = 0.15) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { el.classList.add('in'); io.unobserve(el); } }, { threshold });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [threshold]);
-  return ref;
-}
+// Один спільний IntersectionObserver на всі Reveal (замість окремого на кожен елемент)
+let revealIO = null;
+const revealCallbacks = new WeakMap();
+const observeReveal = (el) => {
+  if (!revealIO) {
+    revealIO = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          revealIO.unobserve(e.target);
+          revealCallbacks.delete(e.target);
+        }
+      });
+    }, { threshold: 0.15 });
+  }
+  revealIO.observe(el);
+  return () => revealIO && revealIO.unobserve(el);
+};
 
-const Reveal = React.memo(({ children, delay = 0, dir = 'up', className = '', threshold }) => {
-  const ref = useReveal(threshold);
+const Reveal = React.memo(({ children, delay = 0, dir = 'up', className = '' }) => {
+  const ref = useRef(null);
+  useEffect(() => (ref.current ? observeReveal(ref.current) : undefined), []);
   return <div ref={ref} className={`rv rv-${dir} ${className}`} style={{ '--d': delay }}>{children}</div>;
 });
 
@@ -113,24 +128,30 @@ const CAN_HOVER = typeof window !== 'undefined' && window.matchMedia('(hover: ho
 function useTilt() {
   const ref = useRef(null);
   const raf = useRef(0);
+  const rect = useRef(null);
+  // Розміри картки читаються ОДИН раз при вході курсора — без зайвих reflow на кожен mousemove
+  const onMouseEnter = useCallback(() => {
+    if (CAN_HOVER && ref.current) rect.current = ref.current.getBoundingClientRect();
+  }, []);
   const onMouseMove = useCallback((e) => {
-    if (!CAN_HOVER || !ref.current) return;
+    if (!CAN_HOVER || !ref.current || !rect.current) return;
     const { clientX, clientY } = e;
     cancelAnimationFrame(raf.current);
     raf.current = requestAnimationFrame(() => {
       const el = ref.current;
-      if (!el) return;
-      const { left, top, width, height } = el.getBoundingClientRect();
-      const x = (clientX - left) / width - 0.5;
-      const y = (clientY - top) / height - 0.5;
+      const r = rect.current;
+      if (!el || !r) return;
+      const x = (clientX - r.left) / r.width - 0.5;
+      const y = (clientY - r.top) / r.height - 0.5;
       el.style.transform = `perspective(1000px) rotateY(${x * 12}deg) rotateX(${y * -12}deg) translateY(-10px) scale3d(1.02, 1.02, 1.02)`;
     });
   }, []);
   const onMouseLeave = useCallback(() => {
     cancelAnimationFrame(raf.current);
+    rect.current = null;
     if (ref.current) ref.current.style.transform = '';
   }, []);
-  return { ref, onMouseMove, onMouseLeave };
+  return { ref, onMouseEnter, onMouseMove, onMouseLeave };
 }
 
 /* ============================================================
@@ -140,26 +161,60 @@ const Mascot = ({ className = '' }) => (
   <div className={`mascot-sprite ${className}`} style={{ backgroundImage: `url(${mascotPhoto})` }} role="img" aria-label="Маскот Харік" />
 );
 
+// Акордеон: заголовок — це <h3> із кнопкою всередині
 const Accordion = React.memo(({ faqs }) => {
   const [act, setAct] = useState(null);
   return (
     <div className="accordion">
-      {faqs.map((f, i) => (
-        <div key={i} className={`acc-item ${act === i ? 'open' : ''}`} onClick={() => setAct(act === i ? null : i)}>
-          <div className="acc-head"><h4>{f.q}</h4><span className="acc-ico">+</span></div>
-          <div className="acc-body"><p>{f.a}</p></div>
-        </div>
-      ))}
+      {faqs.map((f, i) => {
+        const isOpen = act === i;
+        return (
+          <div key={f.q} className={`acc-item ${isOpen ? 'open' : ''}`}>
+            <h3 className="acc-head">
+              <button
+                type="button"
+                className="acc-btn"
+                id={`faq-btn-${i}`}
+                aria-expanded={isOpen}
+                aria-controls={`faq-panel-${i}`}
+                onClick={() => setAct(isOpen ? null : i)}
+              >
+                <span className="acc-q">{f.q}</span>
+                <span className="acc-ico" aria-hidden="true">+</span>
+              </button>
+            </h3>
+            <div className="acc-body" id={`faq-panel-${i}`} role="region" aria-labelledby={`faq-btn-${i}`}>
+              <p>{f.a}</p>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 });
 
 const TiltCard = ({ children, className, onClick }) => {
-  const { ref, onMouseMove, onMouseLeave } = useTilt();
+  const { ref, onMouseEnter, onMouseMove, onMouseLeave } = useTilt();
   return (
-    <div ref={ref} className={`tilt-card ${className}`} onMouseMove={onMouseMove} onMouseLeave={onMouseLeave} onClick={onClick}>
+    <div ref={ref} className={`tilt-card ${className}`} onMouseEnter={onMouseEnter} onMouseMove={onMouseMove} onMouseLeave={onMouseLeave} onClick={onClick}>
       {children}
     </div>
+  );
+};
+
+const RadioGroup = ({ name, question, options, value, onChange }) => {
+  const qid = `q-${name}`;
+  return (
+    <>
+      <div className="s-q" id={qid}>{question}</div>
+      <div className="s-radio-group" role="radiogroup" aria-labelledby={qid}>
+        {options.map((opt) => (
+          <label key={opt}>
+            <input type="radio" name={name} value={opt} checked={value === opt} onChange={() => onChange(opt)} /> {opt}
+          </label>
+        ))}
+      </div>
+    </>
   );
 };
 
@@ -177,10 +232,7 @@ function askHarik(q) {
 }
 
 const BACK = { label: '⬅️ Головне меню', a: ['main'] };
-const MAIN_MENU = [
-  // { label: '🎓 Знайти курс', a: ['cats'] },
-  { label: '💬 Підтримка', a: ['support'] },
-];
+const MAIN_MENU = [{ label: '💬 Підтримка', a: ['support'] }];
 
 function menuReply([t, v]) {
   if (t === 'cats') return { text: 'Обери напрямок:', kb: [...Object.entries(CATS).filter(([k]) => k !== 'all').map(([k, l]) => ({ label: l, a: ['cat', k] })), BACK] };
@@ -222,24 +274,49 @@ const Assistant = React.memo(({ onOpen, onForm }) => {
     reply(menuReply(b.a));
   };
 
-  const send = (q) => {
+  const send = async (q) => {
     if (!q.trim() || busy) return;
-    setMsgs((m) => [...m, { from: 'me', text: q }]); setVal(''); setBusy(true);
-    setTimeout(() => {
+    const userMsg = { from: 'me', text: q };
+    setMsgs((m) => [...m, userMsg]);
+    setVal('');
+    setBusy(true);
+
+    const fallback = () => {
       const a = askHarik(q);
-      setMsgs((m) => [...m, { from: 'bot', text: a.text, act: a.open, kb: a.open ? undefined : MAIN_MENU }]); setBusy(false);
-    }, 800);
+      setMsgs((m) => [...m, { from: 'bot', text: a.text, act: a.open, kb: a.open ? undefined : MAIN_MENU }]);
+    };
+
+    try {
+      const history = [...msgs, userMsg]
+        .filter((m) => m.text)
+        .map((m) => ({ role: m.from === 'me' ? 'user' : 'assistant', content: m.text }));
+
+      const supabase = await getSupabase();
+      const { data, error } = await supabase.functions.invoke('harik-chat', { body: { messages: history } });
+
+      if (!error && data?.reply) {
+        const prof = PROFS.find((p) => p.id === data.open);
+        setMsgs((m) => [...m, { from: 'bot', text: data.reply, act: prof ? ['prof', prof] : undefined, kb: prof ? undefined : MAIN_MENU }]);
+      } else {
+        fallback();
+      }
+    } catch (err) {
+      console.error('Error in harik-chat invocation:', err);
+      fallback();
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
     <div className="ai">
-      <div className={`ai-panel ${open ? 'open' : ''}`}>
+      <div className={`ai-panel ${open ? 'open' : ''}`} role="dialog" aria-label="Чат з AI-ментором Харіком" aria-hidden={!open}>
         <div className="ai-head">
           <div className="ai-ava"><Mascot className="ava-sprite" /></div>
           <div><b>Харік</b><span className="badge">AI Ментор</span></div>
-          <button className="ai-close" onClick={() => setOpen(false)} aria-label="Закрити">✕</button>
+          <button className="ai-close" onClick={() => setOpen(false)} aria-label="Закрити чат"><span aria-hidden="true">✕</span></button>
         </div>
-        <div className="ai-body">
+        <div className="ai-body" role="log" aria-live="polite" aria-relevant="additions">
           {msgs.map((m, i) => (
             <div key={i} className={`msg-wrap ${m.from}`}>
               <div className="msg">{m.text}</div>
@@ -249,7 +326,7 @@ const Assistant = React.memo(({ onOpen, onForm }) => {
               )}
             </div>
           ))}
-          {busy && <div className="msg-wrap bot"><div className="msg dots"><i /><i /><i /></div></div>}
+          {busy && <div className="msg-wrap bot"><div className="msg dots" role="status" aria-label="Харік друкує"><i /><i /><i /></div></div>}
           <div ref={end} />
         </div>
         <div className="chips">
@@ -257,26 +334,31 @@ const Assistant = React.memo(({ onOpen, onForm }) => {
         </div>
         <div className="ai-input">
           {dd && <div className="ai-dd">{MAIN_MENU.map((b) => <button key={b.label} onClick={() => press(b)}>{b.label}</button>)}</div>}
-          <button className="menu-btn" onClick={() => setDd((d) => !d)} aria-label="Меню">☰</button>
-          <input value={val} onChange={(e) => setVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && send(val)} placeholder="Напиши Харіку…" />
+          <button className="menu-btn" onClick={() => setDd((d) => !d)} aria-label="Меню чату" aria-expanded={dd}><span aria-hidden="true">☰</span></button>
+          <input
+            value={val}
+            onChange={(e) => setVal(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && send(val)}
+            placeholder="Напиши Харіку…"
+            aria-label="Повідомлення для Харіка"
+          />
           <button className={val.trim() ? 'active' : ''} onClick={() => send(val)} aria-label="Надіслати">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" /></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" /></svg>
           </button>
         </div>
       </div>
-      <button className={`ai-fab ${open ? 'hidden' : ''}`} onClick={() => setOpen(true)} aria-label="Відкрити чат">
+      <button className={`ai-fab ${open ? 'hidden' : ''}`} onClick={() => setOpen(true)} aria-label="Відкрити чат з Харіком" tabIndex={open ? -1 : 0}>
         <Mascot className="fab-sprite" />
-        <span className="ping" />
+        <span className="ping" aria-hidden="true" />
       </button>
     </div>
   );
 });
 
 /* ============================================================
-   СТИЛІ
+   СТИЛІ (шрифт підключається окремо, без @import — він блокував рендер ланцюжком запитів)
    ============================================================ */
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;800;900&display=swap');
 :root { --primary: #19645E; --primary-light: #248C84; --primary-dark: #10403C; --secondary: #F3B72F; --secondary-hover: #FFD25A; --bg-main: #EAF2F0; --bg-card: #FFFFFF; --bg-glass: rgba(255, 255, 255, 0.85); --text-dark: #1D2D2A; --text-mut: #546B67; --border: rgba(25, 100, 94, 0.15); --shadow-sm: 0 4px 15px rgba(16, 64, 60, 0.08); --shadow-md: 0 12px 35px rgba(16, 64, 60, 0.12); --shadow-lg: 0 25px 50px rgba(16, 64, 60, 0.2); --shadow-neon: 0 0 20px rgba(243, 183, 47, 0.4); --ease: cubic-bezier(0.25, 1, 0.2, 1); --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); }
 
 /* ===== ВАРІАНТ B: індиго + кораловий акцент ===== */
@@ -288,19 +370,30 @@ const CSS = `
 :root[data-variant="b"] .filter-btn.active { box-shadow: 0 10px 20px rgba(74, 58, 167, 0.3); }
 :root[data-variant="b"] .me .msg { box-shadow: 0 5px 15px rgba(74, 58, 167, 0.3); }
 :root[data-variant="b"] .ai-input button.active { box-shadow: 0 5px 15px rgba(74, 58, 167, 0.3); }
-:root[data-variant="b"] .c-tags span, :root[data-variant="b"] .m-mod-head span { background: rgba(74, 58, 167, 0.1); }
+:root[data-variant="b"] .m-mod-head span { background: rgba(74, 58, 167, 0.1); }
 :root[data-variant="b"] .blobs-wrap { background: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.8) 0%, transparent 50%), radial-gradient(circle at 85% 70%, rgba(255, 122, 89, 0.08) 0%, transparent 45%); }
 :root[data-variant="b"] .cta-sec { box-shadow: 0 30px 60px rgba(42, 31, 107, 0.4); }
 :root[data-variant="b"] .sk-b { opacity: 0.8; }
 
-- { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Montserrat', sans-serif; background: var(--bg-main); color: var(--text-dark); line-height: 1.6; overflow-x: hidden; overflow-x: clip; -webkit-tap-highlight-color: transparent; }
-button { font-family: inherit; cursor: pointer; border: 0; background: none; color: inherit; outline: none; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; background: var(--bg-main); color: var(--text-dark); line-height: 1.6; overflow-x: hidden; overflow-x: clip; -webkit-tap-highlight-color: transparent; }
+button { font-family: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+button:focus:not(:focus-visible) { outline: none; }
 a { text-decoration: none; color: inherit; }
 ul, ol { list-style: none; }
 ::-webkit-scrollbar { width: 10px; }
 ::-webkit-scrollbar-track { background: var(--bg-main); }
 ::-webkit-scrollbar-thumb { background: var(--primary-light); border-radius: 5px; }
+
+/* ===== ДОСТУПНІСТЬ ===== */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.skip-link { position: absolute; left: 1rem; top: -5rem; z-index: 1001; background: var(--primary-dark); color: #fff; padding: 0.8rem 1.3rem; border-radius: 12px; font-weight: 800; transition: top 0.2s; }
+.skip-link:focus { top: 1rem; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, video:focus-visible, main:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 3px; }
+main:focus { outline: none; }
+.cta-sec :focus-visible, .modal-close:focus-visible, .ai-head :focus-visible { outline-color: #fff; }
+.s-radio-group input[type="radio"]:focus-visible { outline-offset: 2px; }
+
 @keyframes rv-up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 .container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; }
 .progress-bar { position: fixed; top: 0; left: 0; right: 0; height: 4px; background: var(--secondary); transform: scaleX(0); transform-origin: left; z-index: 300; will-change: transform; }
@@ -310,6 +403,7 @@ ul, ol { list-style: none; }
 .btn-primary:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; color: #666; }
 .btn-yellow { background: var(--secondary); color: var(--primary-dark); box-shadow: 0 8px 25px rgba(243, 183, 47, 0.3); }
 .btn-yellow:hover:not(:disabled) { background: var(--secondary-hover); transform: translateY(-4px); }
+.btn-yellow:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; color: #666; }
 .btn-outline { border: 2px solid var(--primary); color: var(--primary); font-weight: 800; }
 .btn-outline:hover { background: var(--primary); color: #fff; }
 .blobs-wrap { position: fixed; inset: 0; pointer-events: none; z-index: -1; background: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.8) 0%, transparent 50%); }
@@ -331,33 +425,23 @@ ul, ol { list-style: none; }
 .mobile-menu { display: none; }
 .hero { min-height: 100vh; min-height: 100svh; display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 2rem; padding: 8rem 5vw 200px; position: relative; overflow: hidden; text-align: left; }
 .hero-left { position: relative; z-index: 2; }
-.hero-toggle { display: inline-flex; background: #fff; border-radius: 50px; padding: 0.4rem; box-shadow: var(--shadow-sm); margin-bottom: 2rem; animation: rv-up 0.8s var(--ease); }
-.ht-btn { padding: 1rem 2rem; font-weight: 800; font-size: 0.9rem; color: var(--text-mut); border-radius: 50px; text-transform: uppercase; transition: all 0.3s; }
-.ht-btn.active { background: var(--primary); color: #fff; box-shadow: 0 4px 15px rgba(25, 100, 94, 0.3); }
-.hero-slogan { display: inline-block; background: var(--secondary); color: var(--primary-dark); font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; font-size: 0.85rem; padding: 0.5rem 1.2rem; border-radius: 50px; margin-bottom: 1.5rem; display: table; }
+.hero-slogan { background: var(--secondary); color: var(--primary-dark); font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; font-size: 0.85rem; padding: 0.5rem 1.2rem; border-radius: 50px; margin-bottom: 1.5rem; display: table; }
 .hero h1 { font-size: clamp(2.2rem, 3.6vw, 3.6rem); font-weight: 900; line-height: 1.1; margin-bottom: 1.5rem; letter-spacing: -1px; color: var(--primary-dark); animation: rv-up 1s var(--ease); }
 .hero h1 span { color: var(--primary-light); display: block; }
 .hero p { font-size: 1.05rem; color: var(--text-mut); margin-bottom: 2rem; max-width: 620px; font-weight: 600; animation: rv-up 1.2s var(--ease); }
 .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
 .hero-right { position: relative; z-index: 2; display: flex; justify-content: center; align-items: flex-end; min-height: 560px; }
-.hero-mascot { width: 100%; height: min(620px, 70vh); background-size: contain; background-position: center bottom; background-repeat: no-repeat; filter: drop-shadow(0 20px 25px rgba(0,0,0,0.25)); }
+/* LCP-зображення тепер справжній <img> (його видно в HTML одразу, є fetchpriority=high) */
+.hero-mascot { display: block; width: 100%; height: min(620px, 70vh); object-fit: contain; object-position: center bottom; filter: drop-shadow(0 20px 25px rgba(0,0,0,0.25)); }
 .hero-assist { position: absolute; top: 0; left: 0; background: #fff; padding: 1.3rem; border-radius: 20px; border: 2px solid var(--primary); box-shadow: var(--shadow-lg); width: 290px; z-index: 10; text-align: left; }
 .hero-assist::after { content: ''; position: absolute; bottom: -12px; left: 60px; border-width: 12px 12px 0; border-style: solid; border-color: var(--primary) transparent transparent; }
 .ha-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
 .ha-head b { font-size: 0.9rem; font-weight: 900; color: var(--primary-dark); text-transform: uppercase; letter-spacing: 1px; }
 .hero-assist .badge { background: var(--primary); color: #fff; font-size: 0.7rem; padding: 3px 8px; border-radius: 50px; font-weight: 800; }
-.hero-assist p { font-size: 0.9rem; color: var(--text-dark); margin: 0; line-height: 1.5; font-weight: 600; }
+.hero-assist p { font-size: 0.9rem; color: var(--text-dark); margin: 0; line-height: 1.5; font-weight: 600; animation: none; }
 .skyline { position: absolute; bottom: 0; left: 0; width: 100%; height: 250px; display: flex; align-items: flex-end; gap: 4px; z-index: 1; justify-content: center; padding: 0 2vw; pointer-events: none; }
 .sk-b { background: var(--primary); opacity: 0.85; width: calc(100% / 12); border-radius: 4px 4px 0 0; position: relative; animation: buildUp 1s var(--ease-spring) forwards; transform-origin: bottom; transform: scaleY(0); }
 @keyframes buildUp { to { transform: scaleY(1); } }
-.marquee-sec { padding: 4rem 0; overflow: hidden; background: #fff; border-bottom: 1px solid var(--border); position: relative; z-index: 5; }
-.marquee-sub { text-align: center; font-size: 0.95rem; font-weight: 800; color: var(--text-mut); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 2.5rem; }
-.marquee-wrap { display: flex; width: max-content; animation: scroll 40s linear infinite; will-change: transform; }
-.marquee-wrap:hover { animation-play-state: paused; }
-.marquee-item { font-size: 1.6rem; font-weight: 900; color: var(--text-dark); padding: 0 3.5rem; display: flex; align-items: center; opacity: 0.4; transition: all 0.3s; cursor: default; white-space: nowrap; }
-.marquee-item:hover { opacity: 1; color: var(--primary); transform: scale(1.05); }
-.marquee-item::after { content: '•'; color: var(--secondary); margin-left: 3.5rem; font-size: 2rem; }
-@keyframes scroll { to { transform: translateX(-50%); } }
 .sec { padding: 8rem 0; position: relative; z-index: 5; }
 .sec-title { text-align: center; margin-bottom: 4rem; }
 .sec-title h2 { font-size: clamp(2.2rem, 4vw, 3.5rem); font-weight: 900; color: var(--primary-dark); margin-bottom: 1rem; letter-spacing: -1px; }
@@ -367,9 +451,10 @@ ul, ol { list-style: none; }
 .filter-btn:hover { border-color: var(--primary-light); color: var(--primary); transform: translateY(-3px); box-shadow: var(--shadow-md); }
 .filter-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 10px 20px rgba(25, 100, 94, 0.3); transform: scale(1.05); }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 2.5rem; }
-.tilt-card { background: var(--bg-card); border-radius: 24px; border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm); transition: transform 0.1s, box-shadow 0.3s, border-color 0.3s; display: flex; flex-direction: column; cursor: pointer; height: 100%; transform-style: preserve-3d; }
-.tilt-card:hover { box-shadow: var(--shadow-lg); z-index: 2; border-color: var(--primary-light); }
-.prof-thumb { height: 240px; background-size: cover; background-position: center; position: relative; border-bottom: 1px solid var(--border); }
+.tilt-card { background: var(--bg-card); border-radius: 24px; border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm); transition: transform 0.1s, box-shadow 0.3s, border-color 0.3s; display: flex; flex-direction: column; cursor: pointer; height: 100%; transform-style: preserve-3d; position: relative; }
+.tilt-card:hover, .tilt-card:focus-within { box-shadow: var(--shadow-lg); z-index: 2; border-color: var(--primary-light); }
+.prof-thumb { height: 240px; position: relative; border-bottom: 1px solid var(--border); background: var(--bg-main); overflow: hidden; }
+.prof-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .prof-thumb::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(16, 64, 60, 0.8), transparent); opacity: 0.7; transition: opacity 0.3s; }
 :root[data-variant="b"] .prof-thumb::after { background: linear-gradient(to top, rgba(42, 31, 107, 0.8), transparent); }
 .tilt-card:hover .prof-thumb::after { opacity: 0.9; }
@@ -378,20 +463,20 @@ ul, ol { list-style: none; }
 .prof-body { padding: 2.2rem; flex: 1; display: flex; flex-direction: column; transform: translateZ(25px); background: #fff; }
 .prof-body h3 { font-size: 1.5rem; font-weight: 900; margin-bottom: 0.6rem; color: var(--primary-dark); }
 .prof-body p { color: var(--text-mut); font-size: 0.95rem; margin-bottom: 1.5rem; flex: 1; font-weight: 500; }
-.prof-more { color: var(--primary); font-weight: 800; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem; transition: gap 0.3s, color 0.3s; text-transform: uppercase; letter-spacing: 0.5px; }
+.prof-more { color: var(--primary); font-weight: 800; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem; transition: gap 0.3s, color 0.3s; text-transform: uppercase; letter-spacing: 0.5px; text-align: left; padding: 0; align-self: flex-start; }
+.prof-more::after { content: ''; position: absolute; inset: 0; border-radius: 24px; }
+.prof-more:focus-visible { outline: none; }
+.tilt-card:has(.prof-more:focus-visible) { outline: 3px solid var(--primary-light); outline-offset: 3px; }
 .tilt-card:hover .prof-more { gap: 1rem; color: var(--secondary); }
 .review-card { background: #fff; padding: 2.5rem; border-radius: 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); transition: transform 0.3s, box-shadow 0.3s; height: 100%; display: flex; flex-direction: column; }
 .review-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-md); border-color: var(--primary-light); }
-.r-head { display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
 .r-name { font-weight: 900; color: var(--primary-dark); font-size: 1.15rem; }
-.r-uni { font-size: 0.8rem; background: var(--bg-main); padding: 0.4rem 0.8rem; border-radius: 50px; color: var(--primary); font-weight: 800; }
 .r-text { color: var(--text-mut); font-weight: 500; font-size: 0.95rem; font-style: italic; flex: 1; line-height: 1.6; }
 .r-stars { color: var(--secondary); font-size: 1.2rem; letter-spacing: 1px; }
 .r-top { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.2rem; }
 .r-ico { width: 52px; height: 52px; border-radius: 50%; background: var(--bg-main); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
 .r-ut { flex: 1; min-width: 0; }
 .r-fac { font-size: 0.85rem; color: var(--text-mut); font-weight: 600; }
-.r-badge { font-size: 0.75rem; font-weight: 800; padding: 0.35rem 0.8rem; border-radius: 50px; background: rgba(243, 183, 47, 0.2); color: var(--primary-dark); white-space: nowrap; flex-shrink: 0; }
 .r-rating { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; flex-wrap: wrap; }
 .r-rating b { font-weight: 900; color: var(--primary-dark); }
 .r-date { font-size: 0.8rem; color: var(--text-mut); font-weight: 600; }
@@ -404,45 +489,19 @@ ul, ol { list-style: none; }
 .r-who b { font-weight: 800; color: var(--text-dark); }
 .r-who span { font-size: 0.8rem; color: var(--text-mut); font-weight: 600; }
 .r-role { font-size: 0.8rem; font-weight: 800; padding: 0.4rem 0.9rem; border-radius: 50px; background: var(--bg-main); color: var(--primary); flex-shrink: 0; }
-.course-card { padding: 2.5rem; display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden; background: #fff; }
-.c-head { display: flex; gap: 1.5rem; align-items: flex-start; margin-bottom: 1.5rem; transform: translateZ(30px); }
-.c-icon { font-size: 2.5rem; background: var(--bg-main); width: 75px; height: 75px; display: flex; align-items: center; justify-content: center; border-radius: 20px; border: 1px solid var(--border); color: var(--primary-dark); flex-shrink: 0; }
-.c-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.c-tags span { background: rgba(25, 100, 94, 0.08); color: var(--primary-dark); font-size: 0.75rem; font-weight: 800; padding: 0.4rem 0.8rem; border-radius: 8px; text-transform: uppercase; }
-.course-card h3 { font-size: 1.45rem; font-weight: 900; margin-bottom: 0.5rem; transform: translateZ(20px); color: var(--text-dark); }
-.course-card p { color: var(--text-mut); font-size: 0.95rem; margin-bottom: 1.5rem; flex: 1; font-weight: 500; }
-.course-card ul { background: var(--bg-main); padding: 1.5rem; border-radius: 16px; font-size: 0.95rem; border: 1px solid var(--border); }
-.course-card li { display: flex; align-items: flex-start; gap: 0.6rem; margin-bottom: 0.6rem; color: var(--text-dark); font-weight: 700; line-height: 1.4; }
-.course-card li::before { content: '✓'; color: var(--secondary); font-weight: 900; font-size: 1.1rem; }
-.course-card li.mut { color: var(--text-mut); font-weight: 600; font-style: italic; }
-.course-card li.mut::before { content: '+'; color: var(--primary); }
-.timeline { position: relative; max-width: 900px; margin: 0 auto; }
-.timeline::before { content: ''; position: absolute; top: 0; bottom: 0; left: 30px; width: 4px; background: var(--border); border-radius: 4px; }
-.tl-item { position: relative; padding-left: 90px; margin-bottom: 4rem; }
-.tl-dot { position: absolute; left: 16px; top: 0; width: 32px; height: 32px; border-radius: 50%; background: var(--bg-main); border: 4px solid var(--primary-light); box-shadow: 0 0 0 6px #fff; z-index: 2; transition: all 0.3s; }
-.tl-item:hover .tl-dot { transform: scale(1.3); background: var(--secondary); border-color: var(--secondary); }
-.tl-content { background: #fff; padding: 2.5rem; border-radius: 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); position: relative; transition: transform 0.3s; }
-.tl-item:hover .tl-content { transform: translateX(15px); border-color: var(--primary-light); }
-.tl-step { position: absolute; top: -15px; right: 2.5rem; background: var(--primary-dark); color: #fff; font-weight: 900; font-size: 1.2rem; padding: 0.5rem 1.2rem; border-radius: 12px; }
-.tl-content h3 { font-size: 1.5rem; font-weight: 900; margin-bottom: 0.5rem; color: var(--primary-dark); }
-.tl-content p { color: var(--text-mut); font-size: 1.05rem; font-weight: 600; }
-.eco-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 2.5rem; }
-.eco-card { background: #fff; padding: 3rem 2.5rem; border-radius: 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); text-align: center; transition: transform 0.3s; }
-.eco-card:hover { transform: translateY(-10px); box-shadow: var(--shadow-md); border-color: var(--primary-light); }
-.eco-icon { font-size: 4rem; margin-bottom: 1.5rem; display: inline-block; }
-.eco-card h3 { font-size: 1.4rem; font-weight: 900; color: var(--primary-dark); margin-bottom: 1rem; }
-.eco-card p { font-size: 1.05rem; color: var(--text-mut); margin-bottom: 2rem; font-weight: 500; }
-.eco-link { display: inline-block; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; padding-bottom: 5px; border-bottom: 2px solid var(--secondary); transition: color 0.3s; }
-.eco-card:hover .eco-link { color: var(--secondary); border-color: var(--primary); }
+
+/* Акордеон: <h3> > <button> */
 .accordion { max-width: 850px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.2rem; }
-.acc-item { background: #fff; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: all 0.3s; cursor: pointer; box-shadow: var(--shadow-sm); }
+.acc-item { background: #fff; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: all 0.3s; box-shadow: var(--shadow-sm); }
 .acc-item:hover { border-color: var(--primary); box-shadow: var(--shadow-md); transform: translateX(5px); }
-.acc-head { padding: 1.8rem 2.2rem; display: flex; justify-content: space-between; align-items: center; }
-.acc-head h4 { font-size: 1.15rem; font-weight: 800; color: var(--primary-dark); padding-right: 2rem; }
+.acc-head { margin: 0; font: inherit; }
+.acc-btn { width: 100%; padding: 1.8rem 2.2rem; display: flex; justify-content: space-between; align-items: center; text-align: left; gap: 1rem; border-radius: 16px; }
+.acc-btn:focus-visible { outline-offset: -3px; }
+.acc-q { font-size: 1.15rem; font-weight: 800; color: var(--primary-dark); padding-right: 1rem; }
 .acc-ico { font-size: 1.8rem; font-weight: 300; transition: transform 0.4s; color: var(--primary); background: var(--bg-main); width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
 .acc-item.open .acc-ico { transform: rotate(45deg); background: var(--primary); color: #fff; }
-.acc-body { max-height: 0; overflow: hidden; transition: max-height 0.5s, padding 0.5s, opacity 0.5s; padding: 0 2.2rem; opacity: 0; }
-.acc-item.open .acc-body { max-height: 300px; padding: 0 2.2rem 1.8rem; opacity: 1; }
+.acc-body { max-height: 0; overflow: hidden; transition: max-height 0.5s, padding 0.5s, opacity 0.5s, visibility 0.5s; padding: 0 2.2rem; opacity: 0; visibility: hidden; }
+.acc-item.open .acc-body { max-height: 300px; padding: 0 2.2rem 1.8rem; opacity: 1; visibility: visible; }
 .acc-body p { color: var(--text-mut); font-size: 1.05rem; font-weight: 500; }
 .cta-sec { margin-top: 5rem; padding: 7rem 2rem; border-radius: 32px; background: linear-gradient(135deg, var(--primary-dark), var(--primary)); text-align: center; color: #fff; position: relative; overflow: hidden; box-shadow: 0 30px 60px rgba(16, 64, 60, 0.4); }
 .cta-sec::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at top right, rgba(243, 183, 47, 0.15), transparent 50%), radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.1), transparent 50%); }
@@ -453,24 +512,29 @@ ul, ol { list-style: none; }
 .fb-form { display: flex; flex-direction: column; gap: 1rem; text-align: left; }
 .fb-form select, .fb-form textarea, .fb-form input { width: 100%; padding: 1rem 1.3rem; border-radius: 16px; border: 2px solid transparent; font-family: inherit; font-size: 1rem; font-weight: 600; outline: none; background: rgba(255,255,255,0.95); color: var(--text-dark); }
 .fb-form select:focus, .fb-form textarea:focus, .fb-form input:focus { border-color: var(--secondary); }
+.fb-form select:focus-visible, .fb-form textarea:focus-visible, .fb-form input:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
 .fb-done { background: rgba(255,255,255,0.15); padding: 1.5rem; border-radius: 16px; font-weight: 800; font-size: 1.1rem; }
 .footer { padding: 5rem 2rem 3rem; text-align: center; color: var(--text-mut); font-size: 0.95rem; font-weight: 600; }
 .footer-logo { font-size: 1.8rem; font-weight: 900; color: var(--primary-dark); display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; letter-spacing: -0.5px; }
 .footer-logo span { color: var(--secondary); font-size: 2rem; }
 .footer p { margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 2.5rem; display: inline-block; width: 100%; max-width: 900px; }
-.rv { opacity: 0; transition: opacity 0.8s var(--ease), transform 0.8s var(--ease); transition-delay: calc(var(--d) * 1s); will-change: opacity, transform; }
+
+/* will-change прибрано з .rv: десятки постійних композитних шарів гальмували сторінку */
+.rv { opacity: 0; transition: opacity 0.8s var(--ease), transform 0.8s var(--ease); transition-delay: calc(var(--d) * 1s); }
 .rv-up { transform: translateY(50px); }
 .rv-left { transform: translateX(-50px); }
 .rv-right { transform: translateX(50px); }
 .rv-scale { transform: scale(0.9); }
-.rv.in { opacity: 1; transform: translate(0) scale(1); will-change: auto; }
+.rv.in { opacity: 1; transform: translate(0) scale(1); }
 .ai { position: fixed; right: 30px; bottom: 30px; z-index: 200; display: flex; flex-direction: column; align-items: flex-end; gap: 1.2rem; }
 .ai-fab { width: 75px; height: 75px; border-radius: 50%; background: #fff; border: 3px solid var(--primary); box-shadow: var(--shadow-lg); cursor: pointer; position: relative; overflow: hidden; transition: transform 0.3s; }
 .ai-fab:hover { transform: scale(1.15) rotate(-8deg); box-shadow: 0 20px 40px rgba(16, 64, 60, 0.3); }
 .ai-fab.hidden { opacity: 0; pointer-events: none; transform: scale(0.5); }
 .fab-sprite { position: absolute; inset: -15%; background-size: 400% auto; background-position: 84% 15%; pointer-events: none; }
-.ping { position: absolute; top: 4px; right: 4px; width: 16px; height: 16px; background: var(--secondary); border-radius: 50%; box-shadow: 0 0 0 0 rgba(243, 183, 47, 0.7); animation: ping 2s infinite; }
-@keyframes ping { 70% { box-shadow: 0 0 0 15px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+.ping { position: absolute; top: 4px; right: 4px; width: 16px; height: 16px; background: var(--secondary); border-radius: 50%; }
+/* Анімація лише transform + opacity (box-shadow не композититься — це був «non-composited animation») */
+.ping::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: var(--secondary); animation: ping 2s infinite; }
+@keyframes ping { 0% { transform: scale(1); opacity: 0.7; } 70%, 100% { transform: scale(2.2); opacity: 0; } }
 .ai-panel { position: absolute; bottom: 0; right: 0; width: 400px; height: 650px; max-height: 85vh; background: var(--bg-glass); backdrop-filter: blur(25px); border-radius: 24px; border: 1px solid rgba(255,255,255,0.8); box-shadow: 0 35px 70px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; transform: translateY(30px) scale(0.95); opacity: 0; pointer-events: none; visibility: hidden; transition: transform 0.5s var(--ease-spring), opacity 0.4s, visibility 0.4s; transform-origin: bottom right; }
 .ai-panel.open { transform: translateY(0) scale(1); opacity: 1; pointer-events: auto; visibility: visible; }
 .ai-head { background: var(--primary); color: #fff; padding: 1.4rem; display: flex; align-items: center; gap: 1.2rem; border-bottom: 4px solid var(--secondary); }
@@ -503,6 +567,7 @@ ul, ol { list-style: none; }
 .ai-input { position: relative; padding: 1.2rem; background: #fff; border-top: 1px solid var(--border); display: flex; gap: 0.8rem; align-items: center; }
 .ai-input input { flex: 1; min-width: 0; padding: 0.9rem 1.4rem; border-radius: 50px; border: 2px solid var(--bg-main); outline: none; font-family: inherit; font-size: 0.95rem; font-weight: 600; transition: border-color 0.3s, background 0.3s; background: var(--bg-main); }
 .ai-input input:focus { border-color: var(--primary-light); background: #fff; }
+.ai-input input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
 .ai-input button { flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%; background: var(--bg-main); color: var(--text-mut); display: flex; justify-content: center; align-items: center; transition: all 0.3s var(--ease-spring); pointer-events: none; }
 .ai-input button.active { background: var(--primary); color: #fff; pointer-events: auto; box-shadow: 0 5px 15px rgba(25, 100, 94, 0.3); }
 .ai-input button.active:hover { background: var(--secondary); color: var(--primary-dark); transform: scale(1.1); }
@@ -527,6 +592,7 @@ ul, ol { list-style: none; }
 .m-body ul { padding-left: 1.5rem; margin-bottom: 2rem; }
 .m-body li { margin-bottom: 0.6rem; font-weight: 700; list-style-type: disc; color: var(--text-dark); }
 .modal-content .btn { width: 100%; margin-top: 1.5rem; padding: 1.2rem; font-size: 1.1rem; }
+.m-spec { font-size: 1.2rem; font-weight: 800; color: var(--primary); }
 .m-mods { display: flex; flex-direction: column; gap: 1.2rem; counter-reset: mod; margin-top: 2rem; }
 .m-mod { background: var(--bg-main); border: 1px solid var(--border); border-radius: 16px; padding: 1.8rem; position: relative; padding-left: 4.5rem; opacity: 0; animation: slideInRight 0.5s var(--ease-spring) forwards; }
 .m-mod:nth-child(1) { animation-delay: 0.1s; }
@@ -540,6 +606,7 @@ ul, ol { list-style: none; }
 .m-mod-head span { background: rgba(25, 100, 94, 0.1); color: var(--primary-dark); font-weight: 800; font-size: 0.85rem; padding: 0.4rem 1rem; border-radius: 50px; text-transform: uppercase; }
 .m-mod p { color: var(--text-mut); font-size: 1rem; font-weight: 500; margin: 0; }
 .survey-wrap { margin-top: 1.5rem; }
+.survey-done { background: rgba(25, 100, 94, 0.1); color: var(--primary-dark); margin-top: 2rem; padding: 1.5rem; border-radius: 16px; font-weight: 800; font-size: 1.1rem; }
 .survey-progress { display: flex; gap: 5px; margin-bottom: 2rem; }
 .survey-progress-bar { flex: 1; height: 6px; background: var(--bg-main); border-radius: 3px; transition: background 0.3s; }
 .survey-progress-bar.active { background: var(--primary); }
@@ -549,21 +616,23 @@ ul, ol { list-style: none; }
 .s-radio-group label { display: flex; align-items: center; gap: 0.8rem; font-weight: 600; font-size: 1rem; color: var(--text-dark); cursor: pointer; padding: 0.5rem; border-radius: 8px; transition: background 0.2s; }
 .s-radio-group label:hover { background: var(--bg-main); }
 .s-radio-group input[type="radio"] { width: 1.2rem; height: 1.2rem; accent-color: var(--primary); cursor: pointer; }
-.s-stars { display: flex; gap: 0.3rem; font-size: 2rem; cursor: pointer; user-select: none; margin-bottom: 1.5rem; }
-.s-star { color: #e0e0e0; transition: color 0.2s, transform 0.1s; }
+.s-stars { display: flex; gap: 0.3rem; font-size: 2rem; user-select: none; margin-bottom: 1.5rem; }
+.s-star { color: #b9c5c2; transition: color 0.2s, transform 0.1s; font-size: inherit; line-height: 1; padding: 0.1rem; border-radius: 8px; }
 .s-star.active { color: var(--secondary); }
 .s-star:hover { transform: scale(1.1); }
 .s-input, .s-textarea { width: 100%; padding: 1rem 1.3rem; border-radius: 12px; border: 2px solid var(--border); font-family: inherit; font-size: 1rem; font-weight: 600; outline: none; background: #fff; margin-bottom: 1.5rem; color: var(--text-dark); transition: border-color 0.3s; }
 .s-input:focus, .s-textarea:focus { border-color: var(--primary-light); }
+.s-input:focus-visible, .s-textarea:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+.s-review { border-top: 1px solid var(--border); margin-top: 2rem; padding-top: 1.5rem; }
 .s-nav { display: flex; gap: 1rem; margin-top: 2rem; justify-content: flex-end; }
 .s-nav .btn { width: auto; margin-top: 0; }
+.center-row { text-align: center; margin-top: 3.5rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
 @media (hover: none) {
   .tilt-card, .tilt-card:hover { transform: none !important; }
-  .prof-body, .c-head, .course-card h3, .course-card p, .course-card ul { transform: none; }
+  .prof-body { transform: none; }
   .play-btn, .tilt-card:hover .play-btn { transform: translate(-50%, -50%) !important; }
-  .tl-item:hover .tl-content, .acc-item:hover, .review-card:hover, .eco-card:hover { transform: none; }
-  .tl-item:hover::after { height: 0; }
-  .btn:hover, .filter-btn:hover, .marquee-item:hover { transform: none; }
+  .acc-item:hover, .review-card:hover { transform: none; }
+  .btn:hover, .filter-btn:hover { transform: none; }
 }
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr; padding: 7rem 1.5rem 140px; text-align: center; }
@@ -588,17 +657,14 @@ ul, ol { list-style: none; }
   .mobile-menu a { padding: 1rem 0.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary-dark); border-bottom: 1px solid var(--border); }
   .mobile-menu a:last-child { border-bottom: 0; }
   .blobs-wrap { display: none; }
-  .glass, .play-btn, .modal-overlay, .modal-close, .ai-panel { backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .play-btn, .modal-overlay, .modal-close, .ai-panel { backdrop-filter: none; -webkit-backdrop-filter: none; }
   .ai-panel { background: #fff; }
   .modal-overlay { background: rgba(29, 45, 42, 0.92); padding: 0; align-items: flex-end; }
   :root[data-variant="b"] .modal-overlay { background: rgba(37, 32, 63, 0.92); }
   .modal-content { max-height: 92vh; max-height: 92dvh; border-radius: 24px 24px 0 0; }
-  .marquee-wrap { animation-duration: 30s; }
   .rv-left, .rv-right { transform: translateY(30px); }
   .rv { transition-duration: 0.5s; }
   .hero { padding: 6rem 1rem 120px; gap: 0; min-height: auto; }
-  .hero-toggle { flex-direction: column; padding: 0.2rem; border-radius: 20px; width: 100%; }
-  .ht-btn { padding: 0.8rem 1.5rem; font-size: 0.8rem; }
   .hero h1 { font-size: 1.9rem; letter-spacing: -0.5px; }
   .hero p { font-size: 0.95rem; }
   .hero-actions .btn { width: 100%; }
@@ -611,26 +677,17 @@ ul, ol { list-style: none; }
   .filters { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; gap: 0.6rem; margin: 0 -1rem 2rem; padding: 0.3rem 1rem 0.8rem; scrollbar-width: none; }
   .filters::-webkit-scrollbar { display: none; }
   .filter-btn { flex-shrink: 0; padding: 0.7rem 1.3rem; font-size: 0.85rem; }
-  .grid, .eco-grid { gap: 1.2rem; }
+  .grid { gap: 1.2rem; }
   .prof-thumb { height: 190px; }
-  .prof-body, .review-card, .course-card { padding: 1.5rem; }
-  .prof-body h3, .course-card h3 { font-size: 1.25rem; }
-  .c-icon { width: 60px; height: 60px; font-size: 2rem; }
-  .c-head { gap: 1rem; }
-  .timeline::before { left: 14px; }
-  .tl-item { padding-left: 52px; margin-bottom: 2.5rem; }
-  .tl-dot { left: 0; width: 28px; height: 28px; }
-  .tl-content { padding: 1.4rem; }
-  .tl-content h3 { font-size: 1.2rem; }
-  .tl-content p { font-size: 0.95rem; }
-  .tl-step { right: 1rem; top: -12px; font-size: 1rem; }
-  .eco-card { padding: 2rem 1.5rem; }
-  .eco-icon { font-size: 3rem; }
+  .prof-body, .review-card { padding: 1.5rem; }
+  .prof-body h3 { font-size: 1.25rem; }
+  .acc-btn { padding: 1.3rem 1.2rem; }
+  .acc-q { font-size: 1.02rem; }
+  .acc-body, .acc-item.open .acc-body { padding-left: 1.2rem; padding-right: 1.2rem; }
   .cta-sec { padding: 3rem 1.2rem; border-radius: 24px; margin-top: 2rem; }
   .cta-sec p { font-size: 1rem; margin-bottom: 2rem; }
   .footer { padding: 3rem 1rem 6rem; }
   .footer-logo { font-size: 1.5rem; }
-  .m-video { border-radius: 24px 24px 0 0; }
   .modal-close { top: 0.8rem; right: 0.8rem; width: 40px; height: 40px; }
   .m-body { padding: 1.5rem 1.2rem 2rem; }
   .m-body h2 { font-size: 1.5rem; }
@@ -655,6 +712,13 @@ ul, ol { list-style: none; }
   .s-nav { flex-direction: column; }
   .s-nav .btn { width: 100%; }
 }
+
+/* Повага до налаштування «зменшити рух» */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  .rv { opacity: 1; transform: none; }
+  .ping::after { animation: none; }
+}
 `;
 
 /* ============================================================
@@ -665,29 +729,26 @@ const MainPage = () => {
   const [modal, setModal] = useState(null);
   const [scrolled, setScrolled] = useState(false);
   const [menu, setMenu] = useState(false);
-  const [activeTab, setActiveTab] = useState('video');
   const [fb, setFb] = useState({ type: 'feedback', text: '', contact: '', sent: false });
-  const barRef = useRef(null);
   const [reviewsList, setReviewsList] = useState(INITIAL_REVIEWS);
+  const [lateReady, setLateReady] = useState(false); // чат та аналітика монтуються після першого малювання
+  const barRef = useRef(null);
+  const modalCloseRef = useRef(null);
 
   // Стейт форми опитування (3 блоки)
   const [surveyStep, setSurveyStep] = useState(1);
-  const [surveyData, setSurveyData] = useState({
-    time: '', device: '', impression: 0, functionality: 0, convenience: 0,
-    readOthers: '', useful: '', visitAgain: '', integrityViewed: '', integrityImportant: '',
-    watchedVideo: '', videoName: '', videoRating: 0, userName: '', reviewText: '', uniName: '', faculty: '', course: ''
-  });
+  const [surveyData, setSurveyData] = useState(SURVEY_INITIAL);
   const [surveySent, setSurveySent] = useState(false);
 
-  // --- A/B ТЕСТУВАННЯ ТА АНАЛІТИКА ---
-  // Варіант визначається ДО першого рендеру (немає мерехтіння A -> B)
+  // Варіант A/B визначається ДО першого рендеру
   const [variant] = useState(getVariant);
   const trackedForms = useRef(new Set());
   const trackedSections = useRef(new Set());
 
-  // 1. ІНІЦІАЛІЗАЦІЯ GA4 ТА SEO (META ТЕГИ)
+  // GA4: stub gtag створюється одразу (події не губляться), а важкий скрипт GTM вантажиться, коли браузер вільний
   useEffect(() => {
-    document.title = "Абітурієнт+ | Усвідомлений вибір професії та чесний вступ";
+    document.title = 'Абітурієнт+ | Усвідомлений вибір професії та чесний вступ';
+    document.documentElement.lang = 'uk';
 
     const setMetaTag = (name, content, isProperty = false) => {
       const attr = isProperty ? 'property' : 'name';
@@ -699,43 +760,54 @@ const MainPage = () => {
       }
       meta.setAttribute('content', content);
     };
+    setMetaTag('description', 'Платформа для абітурієнтів: обирай професію за допомогою відеовізиток, читай чесні відгуки про виші та будуй кар\'єру без корупції.');
+    setMetaTag('og:title', 'Абітурієнт+ | Чесний вибір майбутнього', true);
+    setMetaTag('og:description', 'Відеовізитки професій та відгуки про університети без цензури.', true);
+    setMetaTag('og:image', 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80', true);
+    setMetaTag('og:type', 'website', true);
 
-    setMetaTag('description', "Платформа для абітурієнтів: обирай професію за допомогою відеовізиток, читай чесні відгуки про виші та будуй кар'єру без корупції.");
-    setMetaTag('og:title', "Абітурієнт+ | Чесний вибір майбутнього", true);
-    setMetaTag('og:description', "Відеовізитки професій та відгуки про університети без цензури.", true);
-    setMetaTag('og:image', "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80", true);
-    setMetaTag('og:type', "website", true);
-
-    const measurementId = 'G-CEBFEDC0W2';
-    if (!document.getElementById('ga-script')) {
-      const script1 = document.createElement('script');
-      script1.id = 'ga-script';
-      script1.async = true;
-      script1.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
-      document.head.appendChild(script1);
-
-      const script2 = document.createElement('script');
-      script2.id = 'ga-config';
-      script2.innerHTML = `
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', '${measurementId}', { send_page_view: false });
-      `;
-      document.head.appendChild(script2);
+    // Шрифт: preconnect + неблокуюче підключення стилів (краще винести в public/index.html — див. пояснення)
+    if (!document.getElementById('font-montserrat')) {
+      const mk = (rel, href, extra = {}) => {
+        const l = document.createElement('link');
+        l.rel = rel; l.href = href;
+        Object.entries(extra).forEach(([k, v]) => l.setAttribute(k, v));
+        document.head.appendChild(l);
+        return l;
+      };
+      mk('preconnect', 'https://fonts.googleapis.com');
+      mk('preconnect', 'https://fonts.gstatic.com', { crossorigin: '' });
+      const css = mk('stylesheet', FONT_URL, { id: 'font-montserrat', media: 'print' });
+      css.onload = () => { css.media = 'all'; };
     }
+
+    window.dataLayer = window.dataLayer || [];
+    if (!window.gtag) {
+      window.gtag = function gtag() { window.dataLayer.push(arguments); };
+      window.gtag('js', new Date());
+      window.gtag('config', GA_ID, { send_page_view: false });
+    }
+    const loadGA = () => {
+      if (document.getElementById('ga-script')) return;
+      const s = document.createElement('script');
+      s.id = 'ga-script';
+      s.async = true;
+      s.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
+      document.head.appendChild(s);
+    };
+    if (document.readyState === 'complete') idle(loadGA, 4000);
+    else window.addEventListener('load', () => idle(loadGA, 4000), { once: true });
+
+    idle(() => setLateReady(true), 3000);
   }, []);
 
-  // Хелпер для відправки подій в GA4
   const trackEvent = useCallback((eventName, params = {}) => {
     if (typeof window !== 'undefined' && window.gtag) {
       window.gtag('event', eventName, { ...params, ab_variant: variant });
-    } else {
-      console.log(`GA4 [${eventName}]`, { ...params, ab_variant: variant });
     }
   }, [variant]);
 
-  // 2. A/B: user property + стартовий page_view
+  // A/B: user property + стартовий page_view
   useEffect(() => {
     document.documentElement.setAttribute('data-variant', variant);
     if (window.gtag) {
@@ -744,37 +816,53 @@ const MainPage = () => {
     }
   }, [variant]);
 
-  // 3. ВІДСТЕЖЕННЯ ГЛИБИНИ СКРОЛУ
+  // ЄДИНИЙ обробник скролу: прогрес-бар, стан навігації, глибина скролу.
+  // Висота документа кешується (ResizeObserver) — немає читання scrollHeight на кожен скрол (forced reflow).
   useEffect(() => {
     const thresholds = [25, 50, 75, 100];
-    const trackedScrolls = new Set();
-    const onScroll = () => {
-      const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-      if (docHeight <= 0) return;
-      const scrollPercent = (window.scrollY / docHeight) * 100;
+    const done = new Set();
+    let ticking = false;
+    let lastScrolled = false;
+    let maxScroll = 0;
 
-      thresholds.forEach(t => {
-        if (scrollPercent >= t && !trackedScrolls.has(t)) {
-          trackedScrolls.add(t);
-          trackEvent('scroll_depth', { percent_scrolled: t });
-        }
-      });
+    const measure = () => { maxScroll = document.documentElement.scrollHeight - window.innerHeight; };
+    const update = () => {
+      ticking = false;
+      const y = window.scrollY;
+      const ratio = maxScroll > 0 ? Math.min(y / maxScroll, 1) : 0;
+      if (barRef.current) barRef.current.style.transform = `scaleX(${ratio})`;
+      const s = y > 50;
+      if (s !== lastScrolled) { lastScrolled = s; setScrolled(s); }
+      if (maxScroll > 0) {
+        const pct = ratio * 100;
+        thresholds.forEach((t) => {
+          if (pct >= t && !done.has(t)) { done.add(t); trackEvent('scroll_depth', { percent_scrolled: t }); }
+        });
+      }
     };
+    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
+
+    measure();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
+    if (ro) ro.observe(document.body);
+    window.addEventListener('resize', measure);
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    return () => {
+      if (ro) ro.disconnect();
+      window.removeEventListener('resize', measure);
+      window.removeEventListener('scroll', onScroll);
+    };
   }, [trackEvent]);
 
-  // 4. ВІДСТЕЖЕННЯ БЛОКУ ЦІННОСТЕЙ (values_block_view & engaged)
+  // Блок відгуків: values_block_view / engaged
   useEffect(() => {
     const el = document.getElementById('reviews');
-    if (!el) return;
+    if (!el) return undefined;
     let timer;
     const io = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
         trackEvent('values_block_view');
-        timer = setTimeout(() => {
-          trackEvent('values_block_engaged');
-        }, 5000);
+        timer = setTimeout(() => trackEvent('values_block_engaged'), 5000);
       } else {
         clearTimeout(timer);
       }
@@ -783,22 +871,18 @@ const MainPage = () => {
     return () => { io.disconnect(); clearTimeout(timer); };
   }, [trackEvent]);
 
-  // 5. ВІДСТЕЖЕННЯ ПОЯВИ СЕКЦІЙ (page_view)
+  // Поява секцій (page_view)
   useEffect(() => {
-    const sections = ['professions', 'reviews', 'faq', 'cta'];
+    const ids = ['professions', 'reviews', 'faq', 'cta'];
     const io = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         if (entry.isIntersecting && !trackedSections.current.has(entry.target.id)) {
           trackedSections.current.add(entry.target.id);
           trackEvent('page_view', { page_path: `/#${entry.target.id}` });
         }
       });
     }, { threshold: 0.3 });
-
-    sections.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) io.observe(el);
-    });
+    ids.forEach((id) => { const el = document.getElementById(id); if (el) io.observe(el); });
     return () => io.disconnect();
   }, [trackEvent]);
 
@@ -809,41 +893,37 @@ const MainPage = () => {
     }
   };
 
-  // Отримання даних з Supabase
+  // Відгуки з Supabase: завантажуємо лише коли секція наближається до екрана
   useEffect(() => {
+    const el = document.getElementById('reviews');
+    if (!el) return undefined;
+    let cancelled = false;
     const fetchReviews = async () => {
-      const { data, error } = await supabase
-  .from('reviews')
-  .select('id, user_name, university, faculty, course, review_text, rating, created_at')
-  .order('created_at', { ascending: false });
-      if (data && !error) {
-        const dbReviews = data.map(r => ({
-          name: r.user_name, uni: r.university || 'ЗВО не вказано', faculty: r.faculty || '', course: r.course || '', tags: [],
-          text: r.review_text, rating: r.rating, date: new Date(r.created_at).getTime()
-        }));
-        setReviewsList([...dbReviews, ...INITIAL_REVIEWS]);
-      } else if (error) {
-        console.error("Помилка завантаження відгуків:", error);
+      try {
+        const supabase = await getSupabase();
+        const { data, error } = await supabase
+          .from('reviews')
+          .select('id, user_name, university, faculty, course, review_text, rating, created_at')
+          .order('created_at', { ascending: false });
+        if (cancelled) return;
+        if (data && !error) {
+          const dbReviews = data.map((r) => ({
+            name: r.user_name, uni: r.university || 'ЗВО не вказано', faculty: r.faculty || '', course: r.course || '', tags: [],
+            text: r.review_text, rating: r.rating, date: new Date(r.created_at).getTime()
+          }));
+          setReviewsList([...dbReviews, ...INITIAL_REVIEWS]);
+        } else if (error) {
+          console.error('Помилка завантаження відгуків:', error);
+        }
+      } catch (err) {
+        console.error('Не вдалося завантажити Supabase:', err);
       }
     };
-    fetchReviews();
-  }, []);
-
-  // Прогрес-бар скролу
-  useEffect(() => {
-    let ticking = false;
-    let last = false;
-    const update = () => {
-      ticking = false;
-      const y = window.scrollY;
-      const h = document.documentElement.scrollHeight - window.innerHeight;
-      if (barRef.current) barRef.current.style.transform = `scaleX(${h > 0 ? y / h : 0})`;
-      const s = y > 50;
-      if (s !== last) { last = s; setScrolled(s); }
-    };
-    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { io.disconnect(); fetchReviews(); }
+    }, { rootMargin: '600px 0px' });
+    io.observe(el);
+    return () => { cancelled = true; io.disconnect(); };
   }, []);
 
   useEffect(() => {
@@ -851,8 +931,21 @@ const MainPage = () => {
     return () => { document.body.style.overflow = ''; };
   }, [modal, menu]);
 
+  // Модальне вікно: Escape, фокус на кнопці закриття, повернення фокусу
+  useEffect(() => {
+    if (!modal) return undefined;
+    const prevFocus = document.activeElement;
+    const onKey = (e) => { if (e.key === 'Escape') setModal(null); };
+    window.addEventListener('keydown', onKey);
+    modalCloseRef.current?.focus({ preventScroll: true });
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      if (prevFocus && typeof prevFocus.focus === 'function') prevFocus.focus({ preventScroll: true });
+    };
+  }, [modal]);
+
   const profs = useMemo(() => (cat === 'all' ? PROFS : PROFS.filter((p) => p.cat === cat)), [cat]);
-  const courses = useMemo(() => (cat === 'all' ? COURSES : COURSES.filter((c) => c.cat === cat)), [cat]);
+  const sortedReviews = useMemo(() => [...reviewsList].sort((a, b) => b.date - a.date), [reviewsList]);
   const skylineBlocks = useMemo(() => SKY_HEIGHTS.map((h, i) => (
     <div key={i} className="sk-b" style={{ height: `${h}%`, animationDelay: `${i * 0.05}s` }} />
   )), []);
@@ -860,8 +953,6 @@ const MainPage = () => {
   const go = useCallback((id, ctaName = null) => {
     if (ctaName) trackEvent('cta_click', { cta_name: ctaName });
     setMenu(false);
-    if (id === 'professions') setActiveTab('video');
-    if (id === 'courses') setActiveTab('courses');
     setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }), 30);
   }, [trackEvent]);
 
@@ -875,15 +966,7 @@ const MainPage = () => {
     setTimeout(() => document.getElementById('cta')?.scrollIntoView({ behavior: 'smooth' }), 30);
   }, []);
 
-  // (курси вимкнено в інтерфейсі, але функція залишена на випадок повернення)
-  const goCourse = (courseId) => {
-    const course = COURSES.find(c => c.id === courseId);
-    if (!course) return;
-    setModal(null);
-    setCat(course.cat);
-    setActiveTab('courses');
-    setTimeout(() => { go('courses', 'modal_go_course'); setTimeout(() => openModal('course', course), 800); }, 150);
-  };
+  const setField = (field) => (value) => setSurveyData((d) => ({ ...d, [field]: value }));
 
   const canGoNext1 = surveyData.time && surveyData.device && surveyData.impression > 0 && surveyData.functionality > 0 && surveyData.convenience > 0;
   const canGoNext2 = surveyData.readOthers && surveyData.useful && surveyData.visitAgain && surveyData.integrityViewed && surveyData.integrityImportant;
@@ -894,7 +977,6 @@ const MainPage = () => {
     trackEvent('feedback_submit', { form_name: 'survey_form' });
     trackEvent('generate_lead', { form_name: 'survey_form' });
 
-    // ВИПРАВЛЕНО: прибрано ab_variant, щоб уникнути конфлікту зі схемою Supabase
     const row = {
       user_name: surveyData.userName,
       review_text: surveyData.reviewText,
@@ -912,37 +994,54 @@ const MainPage = () => {
       video_name: surveyData.videoName,
       video_rating: surveyData.videoRating
     };
-    
-    let { error } = await supabase.from('reviews').insert([{ ...row, university: surveyData.uniName, faculty: surveyData.faculty, course: surveyData.course }]);
-    // якщо колонок university/faculty/course ще немає в таблиці — зберігаємо без них
-    if (error) ({ error } = await supabase.from('reviews').insert([row]));
 
-    if (!error) {
-      setReviewsList([{ name: surveyData.userName, uni: surveyData.uniName, faculty: surveyData.faculty, course: surveyData.course, tags: [], prof: surveyData.time, text: surveyData.reviewText, rating: surveyData.impression, date: Date.now() }, ...reviewsList]);
+    try {
+      const supabase = await getSupabase();
+      let { error } = await supabase.from('reviews').insert([{ ...row, university: surveyData.uniName, faculty: surveyData.faculty, course: surveyData.course }]);
+      if (error) ({ error } = await supabase.from('reviews').insert([row]));
+      if (error) throw error;
+
+      setReviewsList((list) => [{ name: surveyData.userName, uni: surveyData.uniName, faculty: surveyData.faculty, course: surveyData.course, tags: [], text: surveyData.reviewText, rating: surveyData.impression, date: Date.now() }, ...list]);
       setSurveySent(true);
-    } else {
-      console.error('Помилка збереження в базу:', error);
+    } catch (err) {
+      console.error('Помилка збереження в базу:', err);
       alert('Сталася помилка при відправці відгуку. Перевірте підключення до бази.');
     }
   };
 
-const handleFeedbackSubmit = async () => {
-  const { error } = fb.type === 'corruption'
-    ? await supabase.from('corruption_reports').insert([{ description: fb.text }])
-    : await supabase.from('feedback_messages').insert([{ message: fb.text, contact: fb.contact || null }]);
-  if (!error) { trackEvent('generate_lead', { form_name: 'footer_feedback_form' }); setFb({ ...fb, sent: true }); }
-  else alert('Не вдалося надіслати. Спробуйте ще раз.');
-};
+  const handleFeedbackSubmit = async () => {
+    try {
+      const supabase = await getSupabase();
+      const { error } = await supabase.functions.invoke('submit-report', {
+        body: { type: fb.type === 'corruption' ? 'corruption' : 'feedback', text: fb.text, contact: fb.contact, website: '' },
+      });
+      if (error) throw error;
+      trackEvent('generate_lead', { form_name: 'footer_feedback_form' });
+      setFb((f) => ({ ...f, sent: true }));
+    } catch (err) {
+      console.error(err);
+      alert('Не вдалося надіслати. Спробуйте ще раз.');
+    }
+  };
 
-  const renderStars = (field, currentVal) => (
-    <div className="s-stars">
-      {[1, 2, 3, 4, 5].map(star => (
-        <span key={star} className={`s-star ${star <= currentVal ? 'active' : ''}`} onClick={() => setSurveyData({ ...surveyData, [field]: star })}>★</span>
+  // Зірки рейтингу — справжні кнопки
+  const renderStars = (field, currentVal, label) => (
+    <div className="s-stars" role="group" aria-label={label}>
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          type="button"
+          key={star}
+          className={`s-star ${star <= currentVal ? 'active' : ''}`}
+          aria-label={`${star} з 5`}
+          aria-pressed={star === currentVal}
+          onClick={() => setSurveyData((d) => ({ ...d, [field]: star }))}
+        >
+          <span aria-hidden="true">★</span>
+        </button>
       ))}
     </div>
   );
 
-  // КОНТЕНТ A/B ТЕСТА (текст відрізняється, структура однакова)
   const heroContent = variant === 'a' ? {
     slogan: 'Обирай свідоме майбутнє',
     title: 'Обери професію без помилок та марних очікувань',
@@ -960,202 +1059,189 @@ const handleFeedbackSubmit = async () => {
   return (
     <>
       <style>{CSS}</style>
-      <div ref={barRef} className="progress-bar" />
-      <div className="blobs-wrap"><div className="blob c1" /><div className="blob c2" /></div>
+      <a href="#main" className="skip-link">Перейти до основного вмісту</a>
+      <div ref={barRef} className="progress-bar" aria-hidden="true" />
+      <div className="blobs-wrap" aria-hidden="true" />
 
-      <nav className={`nav ${scrolled ? 'scrolled' : ''}`}>
+      <nav className={`nav ${scrolled ? 'scrolled' : ''}`} aria-label="Головна навігація">
         <div className="container nav-inner">
           <a href="#top" className="logo" onClick={(e) => { e.preventDefault(); go('top', 'nav_logo'); }}>
-            <div className="logo-icon">🚀</div> Абітурієнт<span>+</span>
+            <div className="logo-icon" aria-hidden="true">🚀</div> Абітурієнт<span>+</span>
           </a>
           <div className="nav-links">
             <a href="#professions" onClick={(e) => { e.preventDefault(); go('professions', 'nav_professions'); }}>Професії</a>
             <a href="#reviews" onClick={(e) => { e.preventDefault(); go('reviews', 'nav_reviews'); }}>Відгуки</a>
-            {/* <a href="#courses" onClick={(e) => { e.preventDefault(); go('courses', 'nav_courses'); }}>Курси</a> */}
-            {/* <a href="#timeline" onClick={(e) => { e.preventDefault(); go('timeline', 'nav_timeline'); }}>План дій</a> */}
             <a href="#faq" onClick={(e) => { e.preventDefault(); go('faq', 'nav_faq'); }}>FAQ</a>
           </div>
           <button className="btn btn-outline nav-fb" onClick={() => go('cta', 'nav_feedback')}>ЗВОРОТНІЙ ЗВ'ЯЗОК</button>
-          <button className={`burger ${menu ? 'open' : ''}`} onClick={() => setMenu((m) => !m)} aria-label="Меню"><i /><i /><i /></button>
+          <button
+            className={`burger ${menu ? 'open' : ''}`}
+            onClick={() => setMenu((m) => !m)}
+            aria-label="Меню"
+            aria-expanded={menu}
+            aria-controls="mobile-menu"
+          ><i /><i /><i /></button>
         </div>
-        <div className={`mobile-menu ${menu ? 'open' : ''}`}>
+        <div id="mobile-menu" className={`mobile-menu ${menu ? 'open' : ''}`}>
           <a href="#professions" onClick={(e) => { e.preventDefault(); go('professions', 'nav_mob_professions'); }}>Професії</a>
           <a href="#reviews" onClick={(e) => { e.preventDefault(); go('reviews', 'nav_mob_reviews'); }}>Відгуки</a>
-          {/* <a href="#courses" onClick={(e) => { e.preventDefault(); go('courses', 'nav_mob_courses'); }}>Курси</a> */}
-          {/* <a href="#timeline" onClick={(e) => { e.preventDefault(); go('timeline', 'nav_mob_timeline'); }}>План дій</a> */}
           <a href="#faq" onClick={(e) => { e.preventDefault(); go('faq', 'nav_mob_faq'); }}>FAQ</a>
           <a href="#cta" onClick={(e) => { e.preventDefault(); go('cta', 'nav_mob_feedback'); }}>Зворотній зв'язок</a>
         </div>
       </nav>
 
-      <header id="top" className="hero">
-        <div className="hero-left">
-          {/* <div className="hero-toggle">
-            <button className={`ht-btn ${activeTab === 'video' ? 'active' : ''}`} onClick={() => go('professions', 'hero_tab_video')}>ВІДЕО ПРО ПРОФЕСІЇ</button>
-            <button className={`ht-btn ${activeTab === 'courses' ? 'active' : ''}`} onClick={() => go('courses', 'hero_tab_courses')}>ПІДГОТОВЧІ КУРСИ</button>
-          </div> */}
-          <div className="hero-slogan">{heroContent.slogan}</div>
-
-          <h1>{heroContent.title.split(':').map((part, i) => i === 1 ? <span key={i}>{part}</span> : part)}</h1>
-          <p>{heroContent.subtitle}</p>
-
-          <div className="hero-actions">
-            <button className="btn btn-primary" onClick={() => go(heroContent.cta1Id, 'hero_main_cta')}>{heroContent.cta1}</button>
-            <button className="btn btn-outline" onClick={() => go(heroContent.cta2Id, 'hero_secondary_cta')}>{heroContent.cta2}</button>
-          </div>
-        </div>
-        <div className="hero-right">
-          <div className="hero-assist">
-            <div className="ha-head"><b>Харік</b><span className="badge">AI</span></div>
-            <p><b>Хочеш дізнатися більше про професії?</b><br />Залишай запитання, і ми зв'яжемось з тобою!</p>
-          </div>
-          <div className="hero-mascot" style={{ backgroundImage: `url(${mascotPhoto})` }} role="img" aria-label="Маскот Харік" />
-        </div>
-        <div className="skyline">{skylineBlocks}</div>
-      </header>
-
-      {/* <section className="marquee-sec">
-        <div className="marquee-sub">Нам довіряють кар'єрні центри та хаби міста</div>
-        <div className="marquee-wrap">
-          {[...PARTNERS, ...PARTNERS].map((p, i) => <div key={i} className="marquee-item">{p}</div>)}
-        </div>
-      </section> */}
-
-      <section id="professions" className="sec container">
-        <Reveal className="sec-title"><h2>Навігація Професіями</h2><p>Подолай невизначеність! Дізнайся реалії спеціальностей через відеовізитки без "рожевих окулярів" і марних очікувань.</p></Reveal>
-        <Reveal delay={0.1}>
-          <div className="filters">
-            {Object.entries(CATS).map(([k, v]) => <button key={k} className={`filter-btn ${cat === k ? 'active' : ''}`} onClick={() => { setCat(k); trackEvent('feature_use', { feature_name: `filter_${k}` }); }}>{v}</button>)}
-          </div>
-        </Reveal>
-        <div className="grid">
-          {profs.map((p, i) => (
-            <Reveal key={p.id} delay={Math.min(i, 3) * 0.08} dir="up">
-              <TiltCard className="prof-card" onClick={() => openModal('prof', p)}>
-                <div className="prof-thumb" style={{ backgroundImage: `url(${p.poster})` }}><div className="play-btn">▶</div></div>
-                <div className="prof-body"><h3>{p.icon} {p.title}</h3><p>{p.short}</p><div className="prof-more">Відео та кар'єра →</div></div>
-              </TiltCard>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      <section id="reviews" className="sec container">
-        <Reveal className="sec-title"><h2>Чесні відгуки користувачів</h2><p>Відгуки студентів про університети: чи прозоре оцінювання, чи є побори, як працює доброчесність. Обирай ЗВО на основі досвіду інших.</p></Reveal>
-        <div className="grid">
-          {[...reviewsList].sort((a,b) => b.date - a.date).map((r, i) => (
-            <Reveal key={i} delay={Math.min(i, 3) * 0.1} dir="up">
-              <div className="review-card">
-                <div className="r-top">
-                  <div className="r-ico">🏛️</div>
-                  <div className="r-ut"><div className="r-name">{r.uni}</div>{r.faculty && <div className="r-fac">{r.faculty}</div>}</div>
-                  
-                </div>
-                <div className="r-rating"><span className="r-stars">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span><b>{r.rating}.0</b><span className="r-date">• {new Date(r.date).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' })}</span></div>
-                <div className="r-text">«{r.text}»</div>
-                {r.tags && r.tags.length > 0 && <ul className="r-tags">{r.tags.map(t => <li key={t}>{t}</li>)}</ul>}
-                <div className="r-author">
-                  <div className="r-ava">{(r.name || '?').charAt(0).toUpperCase()}</div>
-                  <div className="r-who"><b>{r.name}</b>{r.course && <span>{r.course}</span>}</div>
-                  <span className="r-role">Студент</span>
-                </div>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-        <Reveal delay={0.2}>
-          <div style={{ textAlign: 'center', marginTop: '3.5rem', display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button className="btn btn-primary" onClick={() => {
-                setSurveyStep(1); setSurveySent(false);
-                setSurveyData({ time: '', device: '', impression: 0, functionality: 0, convenience: 0, readOthers: '', useful: '', visitAgain: '', integrityViewed: '', integrityImportant: '', watchedVideo: '', videoName: '', videoRating: 0, userName: '', reviewText: '', uniName: '', faculty: '', course: '' });
-                openModal('survey', null);
-              }}>
-              Пройти опитування та залишити відгук
-            </button>
-          </div>
-        </Reveal>
-      </section>
-
-      {/* <section id="courses" className="sec container">
-        <Reveal className="sec-title"><h2>Підготовчі Курси</h2><p>Від підготовки до вступу до старту в новій професії з нуля. Практичні знання для легкого старту.</p></Reveal>
-        <div className="grid">
-          {courses.map((c, i) => (
-            <Reveal key={c.id} delay={Math.min(i, 3) * 0.08} dir="up">
-              <TiltCard className="course-card" onClick={() => openModal('course', c)}>
-                <div className="c-head"><div className="c-icon">{c.icon}</div><div><div className="c-tags">{c.tags.map(t => <span key={t}>{t}</span>)}</div></div></div>
-                <h3>{c.title}</h3><p>{c.desc}</p>
-                <ul>{c.mods.slice(0, 3).map(m => <li key={m[0]}>{m[0]}</li>)}{c.mods.length > 3 && <li className="mut">ще {c.mods.length - 3} модулі</li>}</ul>
-              </TiltCard>
-            </Reveal>
-          ))}
-        </div>
-      </section> */}
-
-      {/* <section id="timeline" className="sec container">
-        <Reveal className="sec-title"><h2>Твій План Дій</h2><p>Покроковий шлях від подолання сумнівів до успішного старту в прозорому середовищі.</p></Reveal>
-        <div className="timeline">
-          {TIMELINE.map((item, i) => (
-            <Reveal key={i} delay={0.05} dir={i % 2 === 0 ? 'left' : 'right'}>
-              <div className="tl-item"><div className="tl-dot" /><div className="tl-content"><span className="tl-step">{item.step}</span><h3>{item.title}</h3><p>{item.desc}</p></div></div>
-            </Reveal>
-          ))}
-        </div>
-      </section> */}
-
-      {/* <section id="ecosystem" className="sec container">
-        <Reveal className="sec-title"><h2>Екосистема Розвитку Харкова</h2><p>Окрім навчання, місто пропонує потужну інфраструктуру: профорієнтаційні центри, ІТ-кластери та кар'єрні хаби.</p></Reveal>
-        <div className="eco-grid">
-          {ECOSYSTEM.map((eco, i) => (
-            <Reveal key={i} delay={Math.min(i, 3) * 0.08} dir="up"><div className="eco-card"><div className="eco-icon">{eco.icon}</div><h3>{eco.title}</h3><p>{eco.desc}</p><a href="#top" className="eco-link">{eco.link}</a></div></Reveal>
-          ))}
-        </div>
-      </section> */}
-
-      <section id="faq" className="sec container">
-        <Reveal className="sec-title"><h2>Часті Питання</h2><p>Все, що потрібно знати про відгуки та платформу.</p></Reveal>
-        <Reveal delay={0.1}><Accordion faqs={FAQS} /></Reveal>
-      </section>
-
-      <section id="cta" className="container">
-        <Reveal dir="scale">
-          <div className="cta-sec">
-            <div className="cta-content">
-              <h2>Зворотній зв'язок!</h2>
-              <p>Маєш питання або хочеш залишити відгук? Відгуки про корупцію приймаються анонімно.</p>
-              {fb.sent ? (
-                <div className="fb-done">✅ Дякуємо! Ми отримали твоє повідомлення.</div>
-              ) : (
-                <div className="fb-form">
-                  <select value={fb.type} onFocus={() => handleFormStart('footer_feedback')} onChange={(e) => setFb({ ...fb, type: e.target.value })}>
-                    <option value="feedback">Питання / зворотній зв'язок</option>
-                    <option value="corruption">Анонімний відгук про корупцію в ЗВО</option>
-                    {/* <option value="center">Відгук про центр зайнятості</option> */}
-                  </select>
-                  <textarea rows="4" placeholder="Твоє повідомлення…" value={fb.text} onFocus={() => handleFormStart('footer_feedback')} onChange={(e) => setFb({ ...fb, text: e.target.value })} />
-                  {fb.type !== 'corruption' && <input placeholder="Email або Telegram (необов'язково)" onFocus={() => handleFormStart('footer_feedback')} value={fb.contact} onChange={(e) => setFb({ ...fb, contact: e.target.value })} />}
-                  <button className="btn btn-yellow" disabled={!fb.text.trim()} onClick={handleFeedbackSubmit}>Надіслати</button>
-                </div>
-              )}
+      <main id="main" tabIndex={-1}>
+        <section id="top" className="hero" aria-labelledby="hero-title">
+          <div className="hero-left">
+            <div className="hero-slogan">{heroContent.slogan}</div>
+            <h1 id="hero-title">{heroContent.title.split(':').map((part, i) => (i === 1 ? <span key={i}>{part}</span> : part))}</h1>
+            <p>{heroContent.subtitle}</p>
+            <div className="hero-actions">
+              <button className="btn btn-primary" onClick={() => go(heroContent.cta1Id, 'hero_main_cta')}>{heroContent.cta1}</button>
+              <button className="btn btn-outline" onClick={() => go(heroContent.cta2Id, 'hero_secondary_cta')}>{heroContent.cta2}</button>
             </div>
           </div>
-        </Reveal>
-      </section>
+          <div className="hero-right">
+            <div className="hero-assist">
+              <div className="ha-head"><b>Харік</b><span className="badge">AI</span></div>
+              <p><b>Хочеш дізнатися більше про професії?</b><br />Залишай запитання, і ми зв'яжемось з тобою!</p>
+            </div>
+            {/* LCP-елемент: справжній <img> з високим пріоритетом, без lazy */}
+            <img
+              className="hero-mascot"
+              src={mascotPhoto}
+              alt="Маскот Харік"
+              decoding="async"
+              loading="eager"
+              ref={(el) => { if (el) el.setAttribute('fetchpriority', 'high'); }}
+            />
+          </div>
+          <div className="skyline" aria-hidden="true">{skylineBlocks}</div>
+        </section>
 
-      <footer className="footer container"><div className="footer-logo">🚀 Абітурієнт<span>+</span></div><p>© {new Date().getFullYear()} Офіційна платформа профорієнтації для абітурієнтів, студентів та світчерів.</p></footer>
+        <section id="professions" className="sec container" aria-labelledby="professions-title">
+          <Reveal className="sec-title"><h2 id="professions-title">Навігація Професіями</h2><p>Подолай невизначеність! Дізнайся реалії спеціальностей через відеовізитки без "рожевих окулярів" і марних очікувань.</p></Reveal>
+          <Reveal delay={0.1}>
+            <div className="filters" role="group" aria-label="Фільтр за напрямком">
+              {Object.entries(CATS).map(([k, v]) => (
+                <button
+                  key={k}
+                  className={`filter-btn ${cat === k ? 'active' : ''}`}
+                  aria-pressed={cat === k}
+                  onClick={() => { setCat(k); trackEvent('feature_use', { feature_name: `filter_${k}` }); }}
+                >{v}</button>
+              ))}
+            </div>
+          </Reveal>
+          <div className="grid">
+            {profs.map((p, i) => (
+              <Reveal key={p.id} delay={Math.min(i, 3) * 0.08} dir="up">
+                <TiltCard className="prof-card" onClick={() => openModal('prof', p)}>
+                  <div className="prof-thumb">
+                    {/* Справжній <img> з lazy-завантаженням замість background-image */}
+                    <img src={p.poster} alt="" width="600" height="400" loading="lazy" decoding="async" />
+                    <div className="play-btn" aria-hidden="true">▶</div>
+                  </div>
+                  <div className="prof-body">
+                    <h3>{p.icon} {p.title}</h3>
+                    <p>{p.short}</p>
+                    <button type="button" className="prof-more" aria-haspopup="dialog">Відео та кар'єра <span aria-hidden="true">→</span><span className="sr-only">: {p.title}</span></button>
+                  </div>
+                </TiltCard>
+              </Reveal>
+            ))}
+          </div>
+        </section>
+
+        <section id="reviews" className="sec container" aria-labelledby="reviews-title">
+          <Reveal className="sec-title"><h2 id="reviews-title">Чесні відгуки користувачів</h2><p>Відгуки студентів про університети: чи прозоре оцінювання, чи є побори, як працює доброчесність. Обирай ЗВО на основі досвіду інших.</p></Reveal>
+          <div className="grid">
+            {sortedReviews.map((r, i) => (
+              <Reveal key={`${r.date}-${r.name}-${i}`} delay={Math.min(i, 3) * 0.1} dir="up">
+                <article className="review-card">
+                  <div className="r-top">
+                    <div className="r-ico" aria-hidden="true">🏛️</div>
+                    <div className="r-ut"><div className="r-name">{r.uni}</div>{r.faculty && <div className="r-fac">{r.faculty}</div>}</div>
+                  </div>
+                  <div className="r-rating">
+                    <span className="r-stars" role="img" aria-label={`Оцінка ${r.rating} з 5`}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
+                    <b aria-hidden="true">{r.rating}.0</b>
+                    <span className="r-date">• {new Date(r.date).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                  </div>
+                  <div className="r-text">«{r.text}»</div>
+                  {r.tags && r.tags.length > 0 && <ul className="r-tags">{r.tags.map((t) => <li key={t}>{t}</li>)}</ul>}
+                  <div className="r-author">
+                    <div className="r-ava" aria-hidden="true">{(r.name || '?').charAt(0).toUpperCase()}</div>
+                    <div className="r-who"><b>{r.name}</b>{r.course && <span>{r.course}</span>}</div>
+                    <span className="r-role">Студент</span>
+                  </div>
+                </article>
+              </Reveal>
+            ))}
+          </div>
+          <Reveal delay={0.2}>
+            <div className="center-row">
+              <button className="btn btn-primary" aria-haspopup="dialog" onClick={() => {
+                setSurveyStep(1); setSurveySent(false);
+                setSurveyData(SURVEY_INITIAL);
+                openModal('survey', null);
+              }}>
+                Пройти опитування та залишити відгук
+              </button>
+            </div>
+          </Reveal>
+        </section>
+
+        <section id="faq" className="sec container" aria-labelledby="faq-title">
+          <Reveal className="sec-title"><h2 id="faq-title">Часті Питання</h2><p>Все, що потрібно знати про відгуки та платформу.</p></Reveal>
+          <Reveal delay={0.1}><Accordion faqs={FAQS} /></Reveal>
+        </section>
+
+        <section id="cta" className="container" aria-labelledby="cta-title">
+          <Reveal dir="scale">
+            <div className="cta-sec">
+              <div className="cta-content">
+                <h2 id="cta-title">Зворотній зв'язок!</h2>
+                <p>Маєш питання або хочеш залишити відгук? Відгуки про корупцію приймаються анонімно.</p>
+                {fb.sent ? (
+                  <div className="fb-done" role="status">✅ Дякуємо! Ми отримали твоє повідомлення.</div>
+                ) : (
+                  <div className="fb-form">
+                    <label htmlFor="fb-type" className="sr-only">Тип повідомлення</label>
+                    <select id="fb-type" value={fb.type} onFocus={() => handleFormStart('footer_feedback')} onChange={(e) => setFb({ ...fb, type: e.target.value })}>
+                      <option value="feedback">Питання / зворотній зв'язок</option>
+                      <option value="corruption">Анонімний відгук про корупцію в ЗВО</option>
+                    </select>
+                    <label htmlFor="fb-text" className="sr-only">Твоє повідомлення</label>
+                    <textarea id="fb-text" rows="4" placeholder="Твоє повідомлення…" value={fb.text} onFocus={() => handleFormStart('footer_feedback')} onChange={(e) => setFb({ ...fb, text: e.target.value })} />
+                    {fb.type !== 'corruption' && (
+                      <>
+                        <label htmlFor="fb-contact" className="sr-only">Email або Telegram (необов'язково)</label>
+                        <input id="fb-contact" placeholder="Email або Telegram (необов'язково)" onFocus={() => handleFormStart('footer_feedback')} value={fb.contact} onChange={(e) => setFb({ ...fb, contact: e.target.value })} />
+                      </>
+                    )}
+                    <button className="btn btn-yellow" disabled={!fb.text.trim()} onClick={handleFeedbackSubmit}>Надіслати</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Reveal>
+        </section>
+      </main>
+
+      <footer className="footer container"><div className="footer-logo"><span aria-hidden="true">🚀</span> Абітурієнт<span>+</span></div><p>© {new Date().getFullYear()} Офіційна платформа профорієнтації для абітурієнтів, студентів та світчерів.</p></footer>
 
       {modal && (
         <div className="modal-overlay" onClick={() => setModal(null)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setModal(null)} aria-label="Закрити">✕</button>
+          <div className="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title" onClick={(e) => e.stopPropagation()}>
+            <button ref={modalCloseRef} className="modal-close" onClick={() => setModal(null)} aria-label="Закрити"><span aria-hidden="true">✕</span></button>
 
             {modal[0] === 'prof' && (
               <>
-                <video controls playsInline preload="metadata" poster={modal[1].poster} className="m-video" autoPlay muted loop><source src={V} type="video/mp4" /></video>
+                <video controls playsInline preload="metadata" poster={modal[1].poster} className="m-video" autoPlay muted loop aria-label={`Відеовізитка: ${modal[1].title}`}><source src={V} type="video/mp4" /></video>
                 <div className="m-body">
-                  <h2>{modal[1].icon} {modal[1].title}</h2><p>{modal[1].full}</p>
-                  {/* <h3>🏢 Де отримати підтримку (Центри зайнятості)</h3><ul>{modal[1].study.map(s => <li key={s}>{s}</li>)}</ul> */}
-                  <h3>🚀 Кар’єрні можливості</h3><ul>{modal[1].opps.map(s => <li key={s}>{s}</li>)}</ul>
-                  {/* {modal[1].course && <button className="btn btn-primary" onClick={() => goCourse(modal[1].course)}>Почати підготовчий курс</button>} */}
+                  <h2 id="modal-title">{modal[1].icon} {modal[1].title}</h2><p>{modal[1].full}</p>
+                  <h3>🚀 Кар’єрні можливості</h3><ul>{modal[1].opps.map((s) => <li key={s}>{s}</li>)}</ul>
                   <button className="btn btn-primary" onClick={() => setModal(null)}>Зрозуміло</button>
                 </div>
               </>
@@ -1163,7 +1249,7 @@ const handleFeedbackSubmit = async () => {
 
             {modal[0] === 'course' && (
               <div className="m-body">
-                <h2>{modal[1].icon} {modal[1].title}</h2><p style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--primary)' }}>{modal[1].spec}</p><p>{modal[1].desc}</p>
+                <h2 id="modal-title">{modal[1].icon} {modal[1].title}</h2><p className="m-spec">{modal[1].spec}</p><p>{modal[1].desc}</p>
                 <h3>Силабус (Програма курсу)</h3>
                 <div className="m-mods">{modal[1].mods.map(([t, d, x]) => <div className="m-mod" key={t}><div className="m-mod-head"><h4>{t}</h4><span>{d}</span></div><p>{x}</p></div>)}</div>
                 <button className="btn btn-primary" onClick={() => setModal(null)}>Зрозуміло</button>
@@ -1172,15 +1258,15 @@ const handleFeedbackSubmit = async () => {
 
             {modal[0] === 'survey' && (
               <div className="m-body">
-                <h2>Опитування користувачів</h2>
+                <h2 id="modal-title">Опитування користувачів</h2>
                 <p>Ваша думка надзвичайно важлива! Дайте відповіді на кілька питань, щоб опублікувати свій відгук.</p>
                 {surveySent ? (
-                  <div className="fb-done" style={{ background: 'rgba(25, 100, 94, 0.1)', color: 'var(--primary-dark)', marginTop: '2rem' }}>
-                      ✅ Дякуємо! Опитування завершено. Ваш відгук успішно збережено в базі та опубліковано на сайті.
+                  <div className="survey-done" role="status">
+                    ✅ Дякуємо! Опитування завершено. Ваш відгук успішно збережено в базі та опубліковано на сайті.
                   </div>
                 ) : (
                   <div className="survey-wrap">
-                    <div className="survey-progress">
+                    <div className="survey-progress" role="progressbar" aria-valuemin={1} aria-valuemax={3} aria-valuenow={surveyStep} aria-label={`Крок ${surveyStep} з 3`}>
                       <div className={`survey-progress-bar ${surveyStep >= 1 ? 'active' : ''}`} />
                       <div className={`survey-progress-bar ${surveyStep >= 2 ? 'active' : ''}`} />
                       <div className={`survey-progress-bar ${surveyStep >= 3 ? 'active' : ''}`} />
@@ -1188,24 +1274,14 @@ const handleFeedbackSubmit = async () => {
 
                     {surveyStep === 1 && (
                       <div className="survey-block" onFocus={() => handleFormStart('survey_form')}>
-                        <div className="s-q">Скільки часу ви провели на платформі? *</div>
-                        <div className="s-radio-group">
-                          {['До 5 хв', 'До 10 хв', 'До 20 хв', 'Більше 20 хв'].map(opt => (
-                            <label key={opt}><input type="radio" name="time" checked={surveyData.time === opt} onChange={() => setSurveyData({...surveyData, time: opt})} /> {opt}</label>
-                          ))}
-                        </div>
-                        <div className="s-q">Вкажіть з якого ви пристрою: *</div>
-                        <div className="s-radio-group">
-                          {['Ноутбук/комп\'ютер', 'Телефон/планшет'].map(opt => (
-                            <label key={opt}><input type="radio" name="device" checked={surveyData.device === opt} onChange={() => setSurveyData({...surveyData, device: opt})} /> {opt}</label>
-                          ))}
-                        </div>
+                        <RadioGroup name="time" question="Скільки часу ви провели на платформі? *" options={['До 5 хв', 'До 10 хв', 'До 20 хв', 'Більше 20 хв']} value={surveyData.time} onChange={setField('time')} />
+                        <RadioGroup name="device" question="Вкажіть з якого ви пристрою: *" options={['Ноутбук/комп\'ютер', 'Телефон/планшет']} value={surveyData.device} onChange={setField('device')} />
                         <div className="s-q">Оцініть за шкалою від 1 до 5 враження від платформи *</div>
-                        {renderStars('impression', surveyData.impression)}
+                        {renderStars('impression', surveyData.impression, 'Враження від платформи')}
                         <div className="s-q">Оцініть за шкалою від 1 до 5 функціонал платформи *</div>
-                        {renderStars('functionality', surveyData.functionality)}
+                        {renderStars('functionality', surveyData.functionality, 'Функціонал платформи')}
                         <div className="s-q">Оцініть за шкалою від 1 до 5 зручність платформи *</div>
-                        {renderStars('convenience', surveyData.convenience)}
+                        {renderStars('convenience', surveyData.convenience, 'Зручність платформи')}
                         <div className="s-nav">
                           <button className="btn btn-primary" disabled={!canGoNext1} onClick={() => setSurveyStep(2)}>Наступний блок →</button>
                         </div>
@@ -1214,26 +1290,11 @@ const handleFeedbackSubmit = async () => {
 
                     {surveyStep === 2 && (
                       <div className="survey-block">
-                        <div className="s-q">Чи читали ви відгуки про ЗВО інших користувачів? *</div>
-                        <div className="s-radio-group">
-                          {['Так', 'Ні'].map(opt => <label key={opt}><input type="radio" checked={surveyData.readOthers === opt} onChange={() => setSurveyData({...surveyData, readOthers: opt})} /> {opt}</label>)}
-                        </div>
-                        <div className="s-q">Чи були відгуки корисними для Вас? *</div>
-                        <div className="s-radio-group">
-                          {['Так', 'Ні'].map(opt => <label key={opt}><input type="radio" checked={surveyData.useful === opt} onChange={() => setSurveyData({...surveyData, useful: opt})} /> {opt}</label>)}
-                        </div>
-                        <div className="s-q">Чи Ви відвідаєте платформу ще раз? *</div>
-                        <div className="s-radio-group">
-                          {['Так', 'Ні'].map(opt => <label key={opt}><input type="radio" checked={surveyData.visitAgain === opt} onChange={() => setSurveyData({...surveyData, visitAgain: opt})} /> {opt}</label>)}
-                        </div>
-                        <div className="s-q">Чи переглядали ви відгуки пов'язані з доброчесністю ЗВО? *</div>
-                        <div className="s-radio-group">
-                          {['Так', 'Ні'].map(opt => <label key={opt}><input type="radio" checked={surveyData.integrityViewed === opt} onChange={() => setSurveyData({...surveyData, integrityViewed: opt})} /> {opt}</label>)}
-                        </div>
-                        <div className="s-q">Чи важливо Вам доброчесність та не корумпованість ЗВО? *</div>
-                        <div className="s-radio-group">
-                          {['Так', 'Ні'].map(opt => <label key={opt}><input type="radio" checked={surveyData.integrityImportant === opt} onChange={() => setSurveyData({...surveyData, integrityImportant: opt})} /> {opt}</label>)}
-                        </div>
+                        <RadioGroup name="readOthers" question="Чи читали ви відгуки про ЗВО інших користувачів? *" options={['Так', 'Ні']} value={surveyData.readOthers} onChange={setField('readOthers')} />
+                        <RadioGroup name="useful" question="Чи були відгуки корисними для Вас? *" options={['Так', 'Ні']} value={surveyData.useful} onChange={setField('useful')} />
+                        <RadioGroup name="visitAgain" question="Чи Ви відвідаєте платформу ще раз? *" options={['Так', 'Ні']} value={surveyData.visitAgain} onChange={setField('visitAgain')} />
+                        <RadioGroup name="integrityViewed" question="Чи переглядали ви відгуки пов'язані з доброчесністю ЗВО? *" options={['Так', 'Ні']} value={surveyData.integrityViewed} onChange={setField('integrityViewed')} />
+                        <RadioGroup name="integrityImportant" question="Чи важливо Вам доброчесність та не корумпованість ЗВО? *" options={['Так', 'Ні']} value={surveyData.integrityImportant} onChange={setField('integrityImportant')} />
                         <div className="s-nav">
                           <button className="btn btn-outline" onClick={() => setSurveyStep(1)}>← Назад</button>
                           <button className="btn btn-primary" disabled={!canGoNext2} onClick={() => setSurveyStep(3)}>Наступний блок →</button>
@@ -1243,25 +1304,24 @@ const handleFeedbackSubmit = async () => {
 
                     {surveyStep === 3 && (
                       <div className="survey-block">
-                        <div className="s-q">Чи переглядали Ви відео про спеціальності?</div>
-                        <div className="s-radio-group">
-                          {['Так', 'Ні'].map(opt => <label key={opt}><input type="radio" checked={surveyData.watchedVideo === opt} onChange={() => setSurveyData({...surveyData, watchedVideo: opt})} /> {opt}</label>)}
-                        </div>
+                        <RadioGroup name="watchedVideo" question="Чи переглядали Ви відео про спеціальності?" options={['Так', 'Ні']} value={surveyData.watchedVideo} onChange={setField('watchedVideo')} />
                         {surveyData.watchedVideo === 'Так' && (
                           <>
-                            <div className="s-q">Якщо так, скажіть які саме відео ви переглядали?</div>
-                            <input className="s-input" placeholder="Наприклад: Кібербезпека" value={surveyData.videoName} onChange={e => setSurveyData({...surveyData, videoName: e.target.value})} />
+                            <label className="s-q" htmlFor="s-video-name" style={{ display: 'block' }}>Якщо так, скажіть які саме відео ви переглядали?</label>
+                            <input id="s-video-name" className="s-input" placeholder="Наприклад: Кібербезпека" value={surveyData.videoName} onChange={(e) => setField('videoName')(e.target.value)} />
                             <div className="s-q">Оцініть враження від 1 до 5 від відео</div>
-                            {renderStars('videoRating', surveyData.videoRating)}
+                            {renderStars('videoRating', surveyData.videoRating, 'Враження від відео')}
                           </>
                         )}
-                        <div style={{ borderTop: '1px solid var(--border)', marginTop: '2rem', paddingTop: '1.5rem' }}>
-                          <div className="s-q">Відгук про ваш ЗВО</div>
-                          <input className="s-input" placeholder="Назва ЗВО (наприклад: ХНУРЕ) *" value={surveyData.uniName} onChange={e => setSurveyData({...surveyData, uniName: e.target.value})} />
-                          <input className="s-input" placeholder="Факультет / інститут" value={surveyData.faculty} onChange={e => setSurveyData({...surveyData, faculty: e.target.value})} />
-                          <input className="s-input" placeholder="Курс (наприклад: 3 курс)" value={surveyData.course} onChange={e => setSurveyData({...surveyData, course: e.target.value})} />
-                          <input className="s-input" placeholder="Ваше ім'я (можна анонімно) *" value={surveyData.userName} onChange={e => setSurveyData({...surveyData, userName: e.target.value})} />
-                          <textarea className="s-textarea" rows="3" placeholder="Розкажіть про оцінювання, викладачів, доброчесність у вашому ЗВО... *" value={surveyData.reviewText} onChange={e => setSurveyData({...surveyData, reviewText: e.target.value})} />
+                        <div className="s-review">
+                          <div className="s-q" id="s-review-title">Відгук про ваш ЗВО</div>
+                          <div role="group" aria-labelledby="s-review-title">
+                            <input className="s-input" aria-label="Назва ЗВО (обов'язково)" aria-required="true" placeholder="Назва ЗВО (наприклад: ХНУРЕ) *" value={surveyData.uniName} onChange={(e) => setField('uniName')(e.target.value)} />
+                            <input className="s-input" aria-label="Факультет / інститут" placeholder="Факультет / інститут" value={surveyData.faculty} onChange={(e) => setField('faculty')(e.target.value)} />
+                            <input className="s-input" aria-label="Курс" placeholder="Курс (наприклад: 3 курс)" value={surveyData.course} onChange={(e) => setField('course')(e.target.value)} />
+                            <input className="s-input" aria-label="Ваше ім'я (можна анонімно, обов'язково)" aria-required="true" placeholder="Ваше ім'я (можна анонімно) *" value={surveyData.userName} onChange={(e) => setField('userName')(e.target.value)} />
+                            <textarea className="s-textarea" rows="3" aria-label="Ваш відгук (обов'язково)" aria-required="true" placeholder="Розкажіть про оцінювання, викладачів, доброчесність у вашому ЗВО... *" value={surveyData.reviewText} onChange={(e) => setField('reviewText')(e.target.value)} />
+                          </div>
                         </div>
                         <div className="s-nav">
                           <button className="btn btn-outline" onClick={() => setSurveyStep(2)}>← Назад</button>
@@ -1277,8 +1337,13 @@ const handleFeedbackSubmit = async () => {
         </div>
       )}
 
-      <Assistant onOpen={openModal} onForm={openForm} />
-      <Analytics />
+      {/* Чат і аналітика монтуються після першого малювання — не конкурують із LCP */}
+      {lateReady && (
+        <>
+          <Assistant onOpen={openModal} onForm={openForm} />
+          <Suspense fallback={null}><Analytics /></Suspense>
+        </>
+      )}
     </>
   );
 };
